@@ -9,16 +9,17 @@ package com.brockw.stickwar.campaign.controllers
    import com.brockw.stickwar.engine.multiplayer.moves.*;
    import com.brockw.stickwar.engine.units.*;
    import com.brockw.stickwar.market.ItemMap;
+   import flash.utils.*;
    
    public class CampaignController
    {
       public static const T_NOT_RESEARCHED:int = 0;
 
-      public static const T_IS_RESEARCHING:int = 1;
+      public static const T_RESEARCHING:int = 1;
 
       public static const T_RESEARCHED:int = 2;
 
-      public static const version:String = "Easy Modding 1.0.4";
+      public static const version:String = "Easy Modding 1.0.5";
 
       public var comment:String;
       
@@ -30,8 +31,8 @@ package com.brockw.stickwar.campaign.controllers
       {
          super();
          this._gameScreen = param1;
-         //this._userInterface = param1.userInterface;
-         //this._chat = param1.userInterface.chat;
+         //this._userInterface = CampaignGameScreen(param1).userInterface;
+         //this._chat = param1.game.userInterface.chat;
       }
       
       public function update(param1:GameScreen) : void
@@ -159,11 +160,37 @@ package com.brockw.stickwar.campaign.controllers
          return state == currState && timeSec == int(getLvlTime());
       }
 
-      public function getUnitData(un:Unit) : Array
+      public function getUnitData(un:Unit, infType:String) : *
       {
          un = this._gameScreen.game.unitFactory.getUnit(un.type);
-         var result:Array = [un.px,un.py,un.flyingHeight,un.ai.currentTarget];
-         return result;
+
+         infType = infType.toLowerCase();
+         infType = infType.split(" ").join("");
+         if(infType == "hp" || infType == "health")
+         {
+            return un.health;
+         }
+         else if(infType == "mhp" || infType == "maxhealth")
+         {
+            return un.maxHealth;
+         }
+         else if(infType == "px" || infType == "x")
+         {
+            return un.px;
+         }
+         else if(infType == "py" || infType == "y")
+         {
+            return un.py;
+         }
+         else if(infType == "flyingheight" || infType == "fh"|| infType == "flyheight")
+         {
+            return un.flyingHeight;
+         }
+         else if(infType == "currenttarget" || infType == "currtarget" || infType == "target")
+         {
+            return un.ai.currentTarget;
+         }
+         return null;
       }
 
       public function getStatuePos(team:Team, pos:String = "x") : Number
@@ -204,15 +231,23 @@ package com.brockw.stickwar.campaign.controllers
          {
             return this._gameScreen.team.game.main.campaign.difficultyLevel;
          }
-         return 0;
-      }
+         else if(infType == "TIP")
+         {
+            var prefix:String = "Tip: ";
+            var tip:String = this._gameScreen.main.campaign.getCurrentLevel().tip;
 
+            if (tip.indexOf(prefix) === 0) {
+               return tip.substring(prefix.length);
+            }
+         }
+         return null;
+      }
 
       public function getResearchedMap() : Array
       {
-         public var researchedTechs[61]; 
+         var researchedTechs:Array = new Array(61);
 
-         var availableTechs = tech.isResearchedMap(); 
+         var availableTechs:Dictionary = Tech.isResearchedMap;
 
          var i = 0;
          for(i = 0; i >= -61; i--)
@@ -226,6 +261,69 @@ package com.brockw.stickwar.campaign.controllers
          }
          return researchedTechs;
       }
+
+      public function getCameraPos() : Number
+      {
+         return this._gameScreen.game.screenX;
+      }
+
+      public function getTechState(techNum:int, team:Team) : int
+      {
+         if(team.tech.isResearched(techNum))
+         {
+            return T_RESEARCHED;
+         } 
+         else if(team.tech.isResearching(techNum))
+         {
+            return T_RESEARCHING;
+         }
+         else if(!team.tech.isResearching(techNum) && !team.tech.isResearched(techNum))
+         {
+            return T_NOT_RESEARCHED;
+         }
+         return null;
+      }
+
+      public function getTeamState(team:Team) : int
+      {
+         if(team.currentAttackState == Team.G_GARRISON)
+         {
+            return Team.G_GARRISON;
+         } 
+         else if(team.currentAttackState == Team.G_DEFEND)
+         {
+            return Team.G_DEFEND;
+         }
+         else if(team.currentAttackState == Team.G_ATTACK)
+         {
+            return Team.G_ATTACK;
+         }
+         return null;
+      }
+
+      public function getTeamInfo(infType:String, team:Team) : *
+      {
+         infType = infType.toUpperCase();
+         infType = infType.split(" ").join("");
+         if(infType == "GOLD" || infType == "G")
+         {
+            return team.gold;
+         }
+         else if(infType == "MANA" || infType == "M")
+         {
+            return team.mana;
+         }
+         else if(infType == "POPULATION" || infType == "POP" || infType == "P")
+         {
+            return team.population;
+         }
+         else if(infType == "STATUE")
+         {
+            return null;
+         }
+         return null;
+      }
+
    }
 }
 

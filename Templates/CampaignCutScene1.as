@@ -2,8 +2,9 @@ package com.brockw.stickwar.campaign.controllers
 {
    import com.brockw.stickwar.GameScreen;
    import com.brockw.stickwar.campaign.*;
+   import com.brockw.stickwar.engine.units.*;
    
-   public class CampaignTutorial extends CampaignController
+   public class CampaignCutScene1 extends CampaignController
    {
        
       private var state:int = -1;
@@ -11,7 +12,7 @@ package com.brockw.stickwar.campaign.controllers
       private var msg1:InGameMessage;
       private var msg2:InGameMessage;
       
-      public function CampaignTutorial(param1:GameScreen)
+      public function CampaignCutScene1(param1:GameScreen)
       {
          super(param1);
       }
@@ -25,21 +26,40 @@ package com.brockw.stickwar.campaign.controllers
          switch (state)
          {
             case -1:
-               util.SummonUnit("Dead",30,param1.team.enemyTeam);
-               util.SummonUnit("Spearton",1,param1.team);
-               util.SummonUnit("Swordwrath",1,param1.team);
+               util.fogOfWar(false);
+               util.removeTower();
+               cs.cleanUp(true);
+               util.summonUnit("Dead",10,param1.team.enemyTeam);
+               util.summonUnit(["Spearton","Swordwrath"],1,param1.team);
                state++;
+               for each(var un:Unit in param1.team.units)
+               {
+                  un.px = data.center("x") + 50;
+                  if(un is Miner)
+                  {
+                     un.kill();
+                  }
+               }
+               for each(var un:Unit in param1.team.enemyTeam.units)
+               {
+                  un.px = data.center("x") + 400;
+                  if(un is Miner)
+                  {
+                     un.kill();
+                  }
+               }
                
                break;
 
             case 0:
+               cs.follow(cs.infrontUnit(param1.team));
                for each(var un:Unit in param1.team.units)
                {
-                  util.moveUnit(un, un.px + 25, un.py)
+                  util.move(un, un.px - 225, un.py);
                }
                for each(var un:Unit in param1.team.enemyTeam.units)
                {
-                  util.moveUnit(un, un.px + 10, un.py)
+                  util.move(un, un.px - 100, un.py);
                }
                if (!msg)
                {
@@ -53,12 +73,26 @@ package com.brockw.stickwar.campaign.controllers
                break;
 
             case 1:
+               cs.follow(cs.infrontUnit(param1.team));
+               for each(var un:Unit in param1.team.units)
+               {
+                  util.move(un, un.px - 225, un.py);
+               }
+               for each(var un:Unit in param1.team.enemyTeam.units)
+               {
+                  util.move(un, un.px - 100, un.py);
+               }
+
                if (!msg1)
                {
                   msg1 = cs.startMsg("I don't know man! it happened so quickly, I didn't have any time to react!", "-Spearton");
                }
                else if(!param1.contains(msg1))
                {
+                  for each(var un:Unit in param1.team.units)
+                  {
+                     util.garrison(un);
+                  }
                   cs.addlayer();
                   state++;
                }
@@ -66,9 +100,25 @@ package com.brockw.stickwar.campaign.controllers
 
             case 2:
                cs.fadelayer(1, true);
-               debug.Log(cs.statelayer(true) + ", " + cs.statelayer(false));
                if (cs.statelayer(true))
                {
+                  for each(var un:Unit in param1.team.enemyTeam.units)
+                  {
+                     un.px = data.center("x") * 3;
+                     un.kill();
+                  }
+                  for each(var un:Unit in param1.team.units)
+                  {
+                     un.px = data.center("x") * 3;
+                     un.kill();
+                  }
+                  cs.cleanUp(false);
+                  util.summonUnit(["Spearton","Swordwrath"],1,param1.team);
+                  for each(var un:Unit in param1.team.units)
+                  {
+                     un.px = data.homeX(param1.team) - 400;
+                     util.garrison(un);
+                  }
                   debug.Log("Added +1 to 'state'");
                   state++;
                }
@@ -82,10 +132,14 @@ package com.brockw.stickwar.campaign.controllers
                }
                else if (!param1.contains(msg2))
                {
-                  state++;
                   cs.removelayer();
+                  cs.postCleanUp(true);
+                  state++;
                }
                break;
+            case 4:
+               param1.team.enemyTeam.statue.kill();
+               state++;
          }
       }
    }

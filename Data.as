@@ -10,8 +10,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
    import com.brockw.stickwar.engine.units.*;
    import flash.utils.*;
 
-    public class Data
-    {
+   public class Data
+   {
       public static const T_NOT_RESEARCHED:int = 0;
 
       public static const T_RESEARCHING:int = 1;
@@ -83,9 +83,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return state == currState;
       }
 
-      public function isTime(num:int) : Boolean
+      public function isTime(num:Number) : Boolean
       {
-         return int(this._gameScreen.game.frame / 30) == int(num);
+         return Number(this._gameScreen.game.frame / 30) == num;
       }
 
       public function unitData(un:Unit, infType:String) : *
@@ -251,5 +251,5 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          }
          return null;
       }
-    }
+   }
 }

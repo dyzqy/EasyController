@@ -2,6 +2,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 {
     import com.brockw.stickwar.GameScreen;
     import com.brockw.stickwar.campaign.controllers.EasyController.*;
+    import flash.system.*;
     import flash.display.*;
     import flash.events.*;
     import flash.net.*;
@@ -9,22 +10,22 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class Loader
     {
-        public static const version:String = "EC_1.1.0";
+        public static const version:String = "EC_1.1.0"; 
 
-        public static const date:String = "27-09-2023";
+        public static const date:String = "29-12-2023"; // Happy BD to Stick War 2 Custom Mods!
 
         public static const developer:String = "dyzqy";
 
         public static const help:String = "AsePlayer, s07, RinasSam"; // in alphabetical order, not in help amount.
 
 
-        public var versionCheck:Boolean = true;
+        public var versionCheck:Boolean = false;
 
         public var oldVersion:Boolean = false;
 
-        public var isBeta:Boolean = false;
+        public var isBeta:Boolean = true;
 
-        private var descrition:TextField;
+        private var description:TextField;
 
         private var title:TextField;
 
@@ -37,7 +38,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             super();
             this.stringMap = new StringMap();
             this._gameScreen = gameScreen;
-            if(versionCheck)
+            if(versionCheck && !isBeta)
             {
                 verifyVersion(version);
             }
@@ -45,16 +46,19 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public function verifyVersion(currentVersion:String)
         {
-            var request:URLRequest = new URLRequest("https://www.dyzqy.github.com/EasyController/version.txt");
+            Security.allowDomain("raw.githubusercontent.com");
+            Security.allowInsecureDomain("raw.githubusercontent.com");
+            var request:URLRequest = new URLRequest("https://raw.githubusercontent.com/dyzqy/EasyController/main/Other/Other/version.txt");
             var loader:URLLoader = new URLLoader();
             request.method = URLRequestMethod.GET;
             loader.dataFormat = URLLoaderDataFormat.TEXT;
+            loader.addEventListener(Event.COMPLETE, completeHandler);
             loader.load(request);
         }
 
         function completeHandler(event:Event):void 
         {
-            var loadedText:String = loader.data as String;
+            var loadedText:String = "EC_1.1.0";
             var prefix:String = "EC_";
 
             if (loadedText.indexOf(prefix) == 0) 
@@ -99,7 +103,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             else if(errorID == 1)
             {
                 title.htmlText = "Version Mismatch";
-                description.htmlText = "YOu are on an older version of EasyController. If you consider wanting more functionality, bug fixes and more, please <a href =" + link + " >update by clicking here</a>";
+                description.htmlText = "You are on an older version of EasyController. If you consider wanting more functionality, bug fixes and more, please <a href =" + link + " >update by clicking here</a>";
             }
             else if(errorID == 2)
             {
@@ -110,21 +114,21 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public function createStuff()
         {
-            var square:Sprite = Draw.createRectangle(400, 175, Draw.hexToDecimal("#000000"), 75);
+            var square:Sprite = Draw.createRectangle(400, 175, "#000000", 75);
             square.x = Draw.width_center - (square.width / 2);
             square.y = 75;
             _gameScreen.addChild(square);
 
-            this.title = Draw.createTextField(400,35,14,"#ffbb00");
+            this.title = Draw.createTextField(400, 35, 14, "#ffbb00");
             square.addChild(title);
 
-            this.descrition = Draw.createTextField(400,35,14,"#ffbb00");
-            descrition.y = title.height + description.height;
-            square.addChild(descrition);
+            this.description = Draw.createTextField(400, 35, 14, "#ffbb00");
+            description.y = title.height + description.height;
+            square.addChild(description);
         }
     }
 }
 /*
 {
     
-}
+}*/

@@ -12,6 +12,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
       private var _gameScreen:GameScreen;
 
+      private var initilized:Boolean = false;
+
       public var inputField:TextField;
 
       public var stats:TextField;
@@ -31,7 +33,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
       public function SimulateStats(fSize:Number = 12) : void
       {
-         var textFormat:TextFormat = new TextFormat("Arial",fSize,16777215);
+         var textFormat:TextFormat = new TextFormat("Verdana",fSize,16777215);
          stats.defaultTextFormat = textFormat;
          stats.multiline = true;
          stats.wordWrap = true;
@@ -77,29 +79,64 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          console.y = 10;
          background.x = console.x;
          background.y = console.y;
+         this.initilized = true;
       }
       
       public function Log(msg:String,  color:String = "#FFFFFF") : void
       {
-         var formattedMessage:String = "<font color='" + color + "'>" + "[" + CurrentTime() + "] " + msg + "</font>";
-         console.htmlText += formattedMessage + "\n";
-
-         var isAtBottom:Boolean = console.scrollV >= console.maxScrollV - console.height / console.textHeight;
-         if(isAtBottom)
+         if(initilized)
          {
-            console.scrollV = console.maxScrollV;
+            var formattedMessage:String = "<font color='" + color + "'>" + "[" + CurrentTime() + "] " + msg + "</font>";
+            console.htmlText += formattedMessage + "\n";
+
+            var isAtBottom:Boolean = console.scrollV >= console.maxScrollV - console.height / console.textHeight;
+            if(isAtBottom)
+            {
+               console.scrollV = console.maxScrollV;
+            }
+         }
+      }
+
+      public function Clear(msg:Boolean = false, num:int = 0) : void
+      {
+         if(initilized)
+         {
+            var addedMessage:String = msg ? "<font color='" + "#FFFFFF" + "'>" + "[" + CurrentTime() + "] " + "Cleared Console." + "</font>" : "";
+            console.htmlText = addedMessage;
          }
       }
 
       public function LogError(msg:String, cl:String = "") : void
       {
-         var formattedMessage:String = "<font color='#FF0000'>" + "[" + CurrentTime() + ", " + cl + "] " + msg + "</font>";
-         console.htmlText += formattedMessage + "\n";
-
-         var isAtBottom:Boolean = console.scrollV >= console.maxScrollV - console.height / console.textHeight;
-         if(isAtBottom)
+         if(initilized)
          {
-            console.scrollV = console.maxScrollV;
+            var formattedMessage:String = "<font color='#FF0000'>" + "[" + CurrentTime() + ", " + cl + "] " + msg + "</font>";
+            console.htmlText += formattedMessage + "\n";
+
+            var isAtBottom:Boolean = console.scrollV >= console.maxScrollV - console.height / console.textHeight;
+            if(isAtBottom)
+            {
+               console.scrollV = console.maxScrollV;
+            }
+         }
+      }
+
+      public function error(msg:String, cl:String = "") : void
+      {
+         if(initilized)
+         {
+            var formattedMessage:String = "<font color='#FF0000'>" + "[" + CurrentTime() + ", " + cl + "] " + msg + "</font>";
+            console.htmlText += formattedMessage + "\n";
+
+            var isAtBottom:Boolean = console.scrollV >= console.maxScrollV - console.height / console.textHeight;
+            if(isAtBottom)
+            {
+               console.scrollV = console.maxScrollV;
+            }
+         }
+         else
+         {
+            throw new Error("Class: " + cl + ", " + msg);
          }
       }
 

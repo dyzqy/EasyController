@@ -7,27 +7,27 @@ package com.brockw.stickwar.campaign.controllers.EasyController
     public class Draw
     {
 
-        public static const screen_width:String = 850;
+        public static const screen_width:Number = 850;
 
-        public static const screen_height:String = 700;
+        public static const screen_height:Number = 700;
 
-        public static const width_center:String = 425;
+        public static const width_center:Number = 425;
 
-        public static const height_center:String = 350;
+        public static const height_center:Number = 350;
 
         public function Draw()
         {
             super();
         }
 
-        function createTextField(width:Number, height:Number, fontSize:int color:uint) : TextField 
+        public function createTextField(width:Number, height:Number, fontSize:int, color:uint) : TextField 
         {
             var textField:TextField = new TextField();
             
             textField.width = width;
             textField.height = height;
         
-            var textFormat:TextFormat = new TextFormat("Arial", int(fSize), hexToDecimal(color));
+            var textFormat:TextFormat = new TextFormat("Arial", int(fontSize), hexToDecimal(color));
             textField.defaultTextFormat = textFormat;
             textField.multiline = true;
             textField.wordWrap = true;
@@ -37,8 +37,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             
             return textField;
         }
-
-        function createRectangle(width:Number, height:Number, color:string, transparency:Number) : Shape 
+        
+        public function createRectangle(width:Number, height:Number, color:String, transparency:Number) : Shape 
         {
             var rectangle:Shape = new Shape();
             
@@ -49,7 +49,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             return rectangle;
         }
 
-        function hexToDecimal(hexColor:String) : uint
+        public function hexToDecimal(hexColor:String) : uint
         {
             hexColor = hexColor.replace("#", "");
             var red:uint = uint("0x" + hexColor.substr(0, 2));

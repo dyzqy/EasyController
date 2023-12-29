@@ -15,9 +15,11 @@ package com.brockw.stickwar.campaign.controllers
 
       public var util:Util;
 
-      public var cs:Extra;
+      public var cs:CutScene;
 
       public var draw:Draw;
+
+      //public var win:Window;
 
       
       private var _gameScreen:GameScreen;
@@ -26,14 +28,19 @@ package com.brockw.stickwar.campaign.controllers
       {
          super();
          this._gameScreen = gameScreen;
-         this.draw = new Draw();
-         this.loader = new Loader(gameScreen);
 
-         this.stringMap = new StringMap();
-         this.data = new Data(gameScreen);
-         this.debug = new Debug(gameScreen);
-         this.util = new Util(gameScreen);
-         this.cs = new Extra(gameScreen);
+         if(this.draw == null)
+         {
+            this.draw = new Draw();
+            this.loader = new Loader(gameScreen);
+
+            this.stringMap = loader.stringMap;
+            this.data = new Data(gameScreen);
+            this.debug = new Debug(gameScreen);
+            this.util = new Util(gameScreen);
+            this.cs = new CutScene(gameScreen);
+            //this.win = new Window(gameScreen)
+         }
       }
       
       public function update(param1:GameScreen) : void

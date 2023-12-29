@@ -1,14 +1,7 @@
 package com.brockw.stickwar.campaign.controllers
 {
    import com.brockw.stickwar.*;
-   import com.brockw.stickwar.campaign.*;
-   import com.brockw.stickwar.engine.*;
-   import com.brockw.stickwar.engine.Ai.*;
-   import com.brockw.stickwar.engine.Ai.command.*;
-   import com.brockw.stickwar.engine.Team.*;
-   import com.brockw.stickwar.engine.multiplayer.moves.*;
-   import com.brockw.stickwar.engine.units.*;
-   import flash.utils.*;
+   import com.brockw.stickwar.campaign.controllers.EasyController.*;
    
    public class CampaignController
    {
@@ -20,117 +13,42 @@ package com.brockw.stickwar.campaign.controllers
 
       public var debug:Debug;
 
+      public var util:Util;
+
+      public var cs:CutScene;
+
+      public var draw:Draw;
+
+      //public var win:Window;
 
       
       private var _gameScreen:GameScreen;
-      
-      private var _chat:Chat;
       
       public function CampaignController(gameScreen:GameScreen)
       {
          super();
          this._gameScreen = gameScreen;
-         this.loader = new Loader(gameScreen);
 
-         this.stringMap = new StringMap();
-         this.data = new Data(gameScreen);
-         this.debug = new Debug(gameScreen);
+         if(this.draw == null)
+         {
+            this.draw = new Draw();
+            this.loader = new Loader(gameScreen);
 
-         //this._userInterface = CampaignGameScreen(param1).userInterface;
-         //this._chat = param1.game.userInterface.chat;
+            this.stringMap = loader.stringMap;
+            this.data = new Data(gameScreen);
+            this.debug = new Debug(gameScreen);
+            this.util = new Util(gameScreen);
+            this.cs = new CutScene(gameScreen);
+            //this.win = new Window(gameScreen)
+         }
       }
       
       public function update(param1:GameScreen) : void
       {
       }
-
-      // Units
-      
-      public function SummonUnit(u1:String, copies:int, teamSpawn:Team, param1:GameScreen) : void
-      {
-         var i:int = 0;
-         var unN:int = 0;
-         var un:Unit = null;
-         while(i < copies)
-         {
-            unN = StringMap.unitNameToType(u1);
-            un = param1.game.unitFactory.getUnit(unN);
-            teamSpawn.spawn(un,param1.game);
-            teamSpawn.population += un.population;
-            i++;
-         }
-      }
-      
-      public function SummonVarUnit(u1:String, unitVar:Unit, teamSpawn:Team, param1:GameScreen) : void
-      {
-         unitVar = param1.game.unitFactory.getUnit(StringMap.unitNameToType(u1));
-         teamSpawn.spawn(unitVar,param1.game);
-         teamSpawn.population += unitVar.population;
-      }
-
-      // Unit Commands
-      
-      public function MoveUnit(unit:Unit, px:Number, py:Number) : void
-      {
-      }
-      
-      public function HoldUnit(unit:Unit) : void
-      {
-         unit = this._gameScreen.game.unitFactory.getUnit(unit.type);
-         unit.ai.setCommand(this._gameScreen.game,new HoldCommand(this._gameScreen.game));
-         unit.ai.mayAttack = false;
-      }
-      
-      // ???
-
-      public function MakeArrow() : void
-      {
-      }
-      
-      
-
-      // All Data
-
-      
-
    }
-}
-
-/*  {}
-var unitData:Array = getUnitData(this.eGiant);
-         SmallText("HomeX: " + getHomeX(param1.team),"Unit px: " + unitData[0],"Unit py: " + unitData[1],"Unit FH " + unitData[2]);*/
+} 
 package com.brockw.stickwar.campaign.controllers.EasyController
-{
-    import com.brockw.stickwar.GameScreen;
-    import com.brockw.stickwar.campaign.controllers.EasyController.*;
-
-    public class Loader
-    {
-        public static const version:String = "EasyController 1.0.6";
-
-        public static const date:String = "27-7-2023";
-
-        public static const developer:String = "dyzqy";
-
-
-        private var _gameScreen:GameScreen;
-
-        public var stringMap:StringMap;
-
-        //public var data:Data;
-
-        //public var debug:Debug;
-
-        public function Loader(gameScreen:GameScreen)
-        {
-            super();
-            this.stringMap = new StringMap();
-            this._gameScreen = gameScreen;
-            //this.data = new Data(gameScreen);
-            //this.debug = new Debug(gameScreen);
-        }
-    }
-}package com.brockw.stickwar.campaign.controllers.EasyController
 {
    import com.brockw.stickwar.*;
    import com.brockw.stickwar.campaign.*;
@@ -142,8 +60,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
    import com.brockw.stickwar.engine.units.*;
    import flash.utils.*;
 
-    public class Data
-    {
+   public class Data
+   {
       public static const T_NOT_RESEARCHED:int = 0;
 
       public static const T_RESEARCHING:int = 1;
@@ -154,18 +72,18 @@ package com.brockw.stickwar.campaign.controllers.EasyController
       private var _gameScreen:GameScreen;
 
 
-        public function Data(gameScreen:GameScreen)
-        {
-            super();
-            this._gameScreen = gameScreen;
-        }
+      public function Data(gameScreen:GameScreen)
+      {
+         super();
+         this._gameScreen = gameScreen;
+      }
 
-        public function getLvlTime() : Number
+      public function timer() : Number
       {
          return this._gameScreen.game.frame / 30;
       }
-      
-      public function getLvlCenter(pos:String = "X") : Number
+
+      public function center(pos:String = "X") : Number
       {
          pos = pos.toUpperCase();
          if(pos == "X" || pos == "PX")
@@ -179,7 +97,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return 0;
       }
 
-      public function getUnitAmount(team:Team, unitName:String = "") : int
+      public function unitAmount(team:Team, unitName:String = "") : int
       {
          var rUnit:Unit = null;
          var unitType:int = 0;
@@ -210,12 +128,17 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return unitNum;
       }
 
-      public function stateTime(state:int, currState:int, timeSec:int) : Boolean
+      public function state(state:int, currState:int) : Boolean
       {
-         return state == currState && timeSec == int(getLvlTime());
+         return state == currState;
       }
 
-      public function getUnitData(un:Unit, infType:String) : *
+      public function isTime(num:Number) : Boolean
+      {
+         return Number(this._gameScreen.game.frame / 30) == num;
+      }
+
+      public function unitData(un:Unit, infType:String) : *
       {
          un = this._gameScreen.game.unitFactory.getUnit(un.type);
 
@@ -248,7 +171,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return null;
       }
 
-      public function getStatuePos(team:Team, pos:String = "x") : Number
+      public function statuePos(team:Team, pos:String = "x") : Number
       {
          pos = pos.toUpperCase();
          if(pos == "X" || pos == "PX")
@@ -262,12 +185,12 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return 0;
       }
 
-      public function getHomeX(team:Team) : Number
+      public function homeX(team:Team) : Number
       {
          return team.homeX;
       }
 
-      public function getCampaignInfo(infType:String) : *
+      public function campaignInfo(infType:String) : *
       {
          infType = infType.toUpperCase();
          if(infType == "NAME" || infType == "TITLE")
@@ -298,7 +221,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return null;
       }
 
-      public function getResearchedMap() : Array
+      public function researchedMap() : Array
       {
          var researchedTechs:Array = new Array(61);
 
@@ -317,12 +240,12 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return researchedTechs;
       }
 
-      public function getCameraPos() : Number
+      public function cameraPos() : Number
       {
          return this._gameScreen.game.screenX;
       }
 
-      public function getTechState(techNum:int, team:Team) : int
+      public function techState(techNum:int, team:Team) : int
       {
          if(team.tech.isResearched(techNum))
          {
@@ -339,7 +262,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return null;
       }
 
-      public function getTeamState(team:Team) : int
+      public function teamState(team:Team) : int
       {
          if(team.currentAttackState == Team.G_GARRISON)
          {
@@ -356,7 +279,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return null;
       }
 
-      public function getTeamInfo(infType:String, team:Team) : *
+      public function teamInfo(infType:String, team:Team) : *
       {
          infType = infType.toUpperCase();
          infType = infType.split(" ").join("");
@@ -378,8 +301,801 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          }
          return null;
       }
+   }
+} 
+package com.brockw.stickwar.campaign.controllers.EasyController
+{
+    import com.brockw.stickwar.GameScreen;
+    import flash.display.*;
+    import flash.filters.*;
+    import flash.events.*;
+    import flash.text.*;
+    import flash.ui.*;
+
+    public class Debug
+    {
+
+      private var _gameScreen:GameScreen;
+
+      private var initilized:Boolean = false;
+
+      public var inputField:TextField;
+
+      public var stats:TextField;
+
+      public var console:TextField;
+
+      public var comment:String;
+
+      public function Debug(gameScreen:GameScreen)
+      {
+         super();
+         this._gameScreen = gameScreen;
+         
+         this.stats = new TextField();
+         this.console = new TextField();
+      }
+
+      public function SimulateStats(fSize:Number = 12) : void
+      {
+         var textFormat:TextFormat = new TextFormat("Verdana",fSize,16777215);
+         stats.defaultTextFormat = textFormat;
+         stats.multiline = true;
+         stats.wordWrap = true;
+         stats.height = 225;
+         stats.width = 250;
+
+         stats.antiAliasType = AntiAliasType.ADVANCED;
+         stats.embedFonts = true;
+
+         _gameScreen.userInterface.hud.addChild(stats);
+         stats.x = 10;
+         stats.y = 10;
+         var dropShadowFilter:DropShadowFilter = new DropShadowFilter(4,45,0,1,0,0,1,3);
+         var glowFilter:GlowFilter = new GlowFilter(4079166,1,0,0,10,1,false,false);
+         glowFilter.blurX = 5;
+         glowFilter.blurY = 5;
+         stats.filters = [glowFilter];
+      }
+
+      public function SimulateConsole(fSize:int = 14, coms:Boolean = true) : void
+      {
+         var textFormat:TextFormat = new TextFormat("Verdana", int(fSize), 16777215);
+         console.defaultTextFormat = textFormat;
+         console.multiline = true;
+         console.wordWrap = true;
+         console.height = 200;
+         console.width = 450;
+         //console.border = true;
+         //console.borderColor = 0xFFFFFF;
+
+         console.antiAliasType = AntiAliasType.ADVANCED;
+         console.embedFonts = true;
+         
+         var background:Shape = new Shape();
+         background.graphics.beginFill(0, 0.7);
+         background.graphics.drawRect(0, 0, console.width, console.height);
+         background.graphics.endFill();
+
+         _gameScreen.userInterface.hud.addChild(background);
+         _gameScreen.userInterface.hud.addChild(console);
+         addComms(coms, int(fSize));
+         console.x = 10;
+         console.y = 10;
+         background.x = console.x;
+         background.y = console.y;
+         this.initilized = true;
+      }
+      
+      public function Log(msg:String,  color:String = "#FFFFFF") : void
+      {
+         if(initilized)
+         {
+            var formattedMessage:String = "<font color='" + color + "'>" + "[" + CurrentTime() + "] " + msg + "</font>";
+            console.htmlText += formattedMessage + "\n";
+
+            var isAtBottom:Boolean = console.scrollV >= console.maxScrollV - console.height / console.textHeight;
+            if(isAtBottom)
+            {
+               console.scrollV = console.maxScrollV;
+            }
+         }
+      }
+
+      public function Clear(msg:Boolean = false, num:int = 0) : void
+      {
+         if(initilized)
+         {
+            var addedMessage:String = msg ? "<font color='" + "#FFFFFF" + "'>" + "[" + CurrentTime() + "] " + "Cleared Console." + "</font>" : "";
+            console.htmlText = addedMessage;
+         }
+      }
+
+      public function LogError(msg:String, cl:String = "") : void
+      {
+         if(initilized)
+         {
+            var formattedMessage:String = "<font color='#FF0000'>" + "[" + CurrentTime() + ", " + cl + "] " + msg + "</font>";
+            console.htmlText += formattedMessage + "\n";
+
+            var isAtBottom:Boolean = console.scrollV >= console.maxScrollV - console.height / console.textHeight;
+            if(isAtBottom)
+            {
+               console.scrollV = console.maxScrollV;
+            }
+         }
+      }
+
+      public function error(msg:String, cl:String = "") : void
+      {
+         if(initilized)
+         {
+            var formattedMessage:String = "<font color='#FF0000'>" + "[" + CurrentTime() + ", " + cl + "] " + msg + "</font>";
+            console.htmlText += formattedMessage + "\n";
+
+            var isAtBottom:Boolean = console.scrollV >= console.maxScrollV - console.height / console.textHeight;
+            if(isAtBottom)
+            {
+               console.scrollV = console.maxScrollV;
+            }
+         }
+         else
+         {
+            throw new Error("Class: " + cl + ", " + msg);
+         }
+      }
+
+      public function Statistics(txt:String, txt2:String = "", txt3:String = "", txt4:String = "", txt5:String = "", txt6:String = "") : void
+      {
+         stats.htmlText = txt + "\n" + txt2 + "\n" + txt3 + "\n" + txt4 + "\n" + txt5 + "\n" + txt6;
+      }
+
+      public function CurrentTime() : String
+      {
+         var seconds:Number = this._gameScreen.game.frame / 30;
+         var minutes:int = Math.floor(seconds / 60);
+         var remainingSeconds:int = seconds % 60;
+
+         var formattedTime:String = minutes.toString() + ":" + (remainingSeconds < 10 ? "0" : "") + remainingSeconds.toString();
+         return formattedTime;
+      }
+
+      public function addComms(coms:Boolean = true, fSize:int = 14) : void
+      {
+         if(coms)
+         {
+            var bg:Shape = new Shape();
+            bg.graphics.beginFill(0, 0.7);
+            bg.graphics.drawRect(0, 0, console.width, 20);
+            bg.graphics.endFill();
+
+            bg.y = console.y + console.height + bg.height - 5;
+            _gameScreen.userInterface.hud.addChild(bg);
+
+            var textFormat:TextFormat = new TextFormat("Verdana", int(fSize), 16777215);
+            inputField = new TextField();
+            inputField.defaultTextFormat = textFormat;
+            inputField.type = TextFieldType.INPUT;
+
+            inputField.antiAliasType = AntiAliasType.ADVANCED;
+            inputField.embedFonts = true;
+
+            inputField.height = 20;
+            inputField.width = 450;
+
+            _gameScreen.userInterface.hud.addChild(inputField);
+            inputField.x = 10;
+            inputField.y = bg.y;
+            bg.x = inputField.x;
+            bg.y = inputField.y;
+
+            inputField.addEventListener(KeyboardEvent.KEY_DOWN, handleInput);
+         }
+      }
+
+      public function handleInput(event:KeyboardEvent):void
+      {
+         var parts:Array = null;
+         var command:String = inputField.text;
+         if (event.keyCode == Keyboard.ENTER)
+         {
+            command = command.toLowerCase();
+            command = command.split("-").join("");
+            command = command.split("/").join("");
+            parts = command.split(" ");
+            
+            switch(parts[0])
+            {
+               case "clear":
+                  console.htmlText = "";
+                  Log("> Cleared console", "#FFFF00");
+                  break;
+               case "give":
+                  var team:String = parts[1].toLowerCase();
+                  var currency:String = parts[2].toLowerCase();
+                  var amount:int = parts[3];
+                  if(team == "team")
+                  {
+                     if(currency == "gold")
+                     {
+                        _gameScreen.team.gold += amount;
+                     }
+                     else if(currency == "mana")
+                     {
+                        _gameScreen.team.mana += amount;
+                     }
+                  }
+                  else if(team == "enemyteam")
+                  {
+                     if(currency == "gold")
+                     {
+                        _gameScreen.team.enemyTeam.gold += amount;
+                     }
+                     else if(currency == "mana")
+                     {
+                        _gameScreen.team.enemyTeam.mana += amount;
+                     }
+                  }
+                  Log("> Gave " + team + " " + amount + " of " + currency, "#FFFF00");
+                  break;
+               case "help":
+                  Log("> clear, give", "#FFFF00");
+                  break;
+               default:
+                  Log("> " + command + " is an unknown command, try using 'help'", "#FFFF00");
+            }
+
+            inputField.text = "";
+         }
+      }
+   }
+} 
+package com.brockw.stickwar.campaign.controllers.EasyController
+{
+    import com.brockw.stickwar.GameScreen;
+    import com.brockw.stickwar.*;
+    import com.brockw.stickwar.campaign.*;
+    import com.brockw.stickwar.engine.*;
+    import com.brockw.stickwar.engine.Ai.*;
+    import com.brockw.stickwar.engine.Ai.command.*;
+    import com.brockw.stickwar.engine.Team.*;
+    import com.brockw.stickwar.engine.multiplayer.moves.*;
+    import com.brockw.stickwar.engine.units.*;
+    import flash.utils.*;
+
+    public class Util
+    {
+        private var _gameScreen:GameScreen;
+
+        private var debug:Debug;
+
+        public function Util(gameScreen:GameScreen)
+        {
+            super();
+            this._gameScreen = gameScreen;
+        }
+
+        public function summonUnit(u1:*, copies:int, teamSpawn:Team, returnType:Class = null, type:* = null) : *
+        {
+            var i:int = 0;
+            var unName:int = 0;
+            var un:Unit = null;
+            var units:Array = [];
+
+            if (u1 is Array)
+            {
+                var j:int = 0;
+                while(j < u1.length)
+                {
+                    if(!(u1[j] is String))
+                    {
+                        Debug(_gameScreen).error("Unit Name must be a String. SummonUnit().", "Util");
+                    }
+                    while(i < copies)
+                    {
+                        unName = StringMap.unitNameToType(u1[j]);
+                        un = _gameScreen.game.unitFactory.getUnit(unName);
+                        /*if(type != null)
+                        {
+                            if (type is Array)
+                            {
+                                StringMap.setUnitType(un, type[j]);
+                            }
+                            else if (type is String)
+                            {
+                                StringMap.setUnitType(un, type);
+                            }
+                            else
+                            {
+                                Debug(_gameScreen).error("Invalid parameter for 'unitType'. The parameter must be either a String or an Array of Strings.", "Util");
+                            }
+                            
+                        }*/
+                        teamSpawn.spawn(un, _gameScreen.game);
+                        teamSpawn.population += un.population;
+
+                        units.push(un);
+                        i++;
+                    }
+                    i = 0;
+                    j++;
+                }
+            }
+            else if (u1 is String)
+            {
+                while (i < copies)
+                {
+                    unName = StringMap.unitNameToType(u1);
+                    un = _gameScreen.game.unitFactory.getUnit(unName);
+                    teamSpawn.spawn(un, _gameScreen.game);
+                    teamSpawn.population += un.population;
+
+                    units.push(un);
+                    i++;
+                }
+            }
+            else
+            {
+                Debug(_gameScreen).error("Invalid parameter for 'SummonUnit'. The first parameter must be either a String or an Array of Strings.", "Util");
+            }
+
+            switch(returnType)
+            {
+                case Array:
+                    return units;
+                    break;
+
+                case Unit:
+                    return units[0];
+                    break;
+
+                case String:
+                    return StringMap.unitTypeToName(units[0].type);
+                    break;
+
+                case int:
+                    return units[0].type;
+                    break;
+
+                default:
+                    return null;
+                    break;
+            }
+        }
+
+        public function killUnit(un:Unit, destroy:Boolean = false) : void
+        {
+            if(destroy)
+            {
+                un.px = 10000;
+            }
+            un.kill();
+        }
+
+        public function removeTower() : void
+        {
+            if(_gameScreen.game.map.hills.length != 0) 
+            {
+                var hill:Hill = _gameScreen.game.map.hills.pop();
+                var index:int = _gameScreen.game.map.hills.indexOf(hill);
+                hill.alpha = 0;
+                delete _gameScreen.game.map.hills[hill];
+                if (index != -1)
+                {
+                    _gameScreen.game.map.hills.splice(index, 1);
+                }
+            }
+        }
+
+        public function researchTech(tech:int, team:Team, outcome:Boolean = true) : void
+        {
+          team.tech.isResearchedMap[tech] = outcome;
+        }
+
+        public function fogOfWar(activate:Boolean = false) : void
+        {
+            _gameScreen.game.fogOfWar.isFogOn = activate;
+        }
+
+        public function setLevelType(infType:String = "") : void
+        {
+            var statue:Statue = _gameScreen.team.statue;
+            var enemyStatue:Statue = _gameScreen.team.enemyTeam.statue;
+            infType = infType.toLowerCase();
+            infType = infType.split(" ").join("");
+            if(infType == "ambush")
+            {
+                //_gameScreen.team.enemyTeam.statue.isDieing = true;
+                _gameScreen.team.enemyTeam.statue.isDead = true;
+                _gameScreen.team.enemyTeam.statue.px = statue.px - 1000;
+                _gameScreen.team.enemyTeam.statue.x = statue.x - 1000;
+                //_gameScreen.team.enemyTeam.statue.py = 250;
+                //_gameScreen.team.enemyTeam.statue.y = 250;
+                _gameScreen.team.enemyTeam.statue.alpha = 0;
+            }
+            else if(infType == "seige")
+            {
+                //_gameScreen.team.enemyTeam.statue.isDieing = true;
+                //_gameScreen.team.enemyTeam.statue.py = 250;
+                //_gameScreen.team.enemyTeam.statue.y = 250;
+
+                enemyStatue.isDead = true;
+                enemyStatue.px = statue.px - 1000;
+                enemyStatue.x = statue.x - 1000;
+                enemyStatue.alpha = 0;
+
+                statue.isDead = true;
+                statue.px = enemyStatue.px;
+                statue.x = enemyStatue.x;
+                statue.alpha = 0;
+            }
+            else if(infType == "" || infType == "normal")
+            {
+                return;
+            }
+            else
+            {
+                throw new Error(infType + " is not a registered level type.");
+            }
+            return;
+        }
+
+        public function winCondition(type:String, time:int) : void
+        {
+            var statue:Statue = _gameScreen.team.statue;
+            type = type.toLowerCase();
+            type = type.split(" ").join("");
+            if(type == "time")
+            {
+                if(int(_gameScreen.game.frame / 30) == time)
+                {
+                  _gameScreen.team.enemyTeam.statue.px = statue.px;
+                  _gameScreen.team.enemyTeam.statue.x = statue.x;
+                  _gameScreen.enemyTeam.statue.kill();
+                }
+            }
+        }
+
+        public function challenge(type:String) : void
+        {
+            var clAmount:int = 0;
+            type = type.toLowerCase();
+            type = type.split(" ").join("");
+            if(type == "gold" || type == "gathergold")
+            {
+                var gold:int = _gameScreen.team.gold;
+                if(gold < _gameScreen.team.gold)
+                {
+                    clAmount += _gameScreen.team.gold - gold;
+                }
+            }
+            return;
+        }
+
+        public function hold(unit:Unit, x:Number = 0, y:Number = 0) : void
+        {
+            var move:UnitMove = new UnitMove();
+            move.owner = unit.team.id; 
+            move.moveType = UnitCommand.HOLD; 
+            move.arg0 = x; 
+            move.arg1 = y; 
+            move.units.push(unit.id); 
+            move.execute(_gameScreen.game);
+        }
+
+        public function move(unit:Unit, x:Number = 0, y:Number = 0) : void
+        {
+            var move:UnitMove = new UnitMove(); 
+            move.owner = unit.team.id;
+            move.moveType = UnitCommand.MOVE; 
+            move.arg0 = x; 
+            move.arg1 = y; 
+            move.units.push(unit.id); 
+            move.execute(_gameScreen.game);
+        }
+
+        public function garrison(unit:Unit) : void
+        {
+            var move:UnitMove = new UnitMove(); 
+            move.owner = unit.team.id; 
+            move.moveType = UnitCommand.GARRISON; 
+            move.arg0 = unit.px; 
+            move.arg1 = unit.py; 
+            move.units.push(unit.id); 
+            move.execute(_gameScreen.game);
+        }
+
+        public function loop(sec:int, func:Function) : void
+        {
+            if (_gameScreen.game.frame % (30 * sec) == 0)
+            {
+                func();
+            }
+        }
+
+        public function king(un:Unit) : void
+        {
+            if(un.isDead)
+            {
+               un.team.statue.kill();
+            }
+        }
+
+        public function revive(un:Unit, sec:int) : Unit
+        {
+            var unit:Unit = null;
+            
+            if(un.isDead)
+            {
+                var type:int = unit != null ? un.type : type;
+                var team:Team = unit != null ? un.team : team;
+                if(param1.game.frame % (30 * sec) == 0)
+                {
+                    unit = SummonUnit(StringMap.unitTypeToName(un.type), 1, un.team, Unit);
+                    return unit;
+                }
+            }
+        }
     }
-}package com.brockw.stickwar.campaign.controllers.EasyController
+} 
+package com.brockw.stickwar.campaign.controllers.EasyController
+{
+    import com.brockw.stickwar.GameScreen;
+    import com.brockw.stickwar.campaign.InGameMessage;
+    import com.brockw.stickwar.engine.Team.Team;
+    import com.brockw.stickwar.engine.units.*;
+    import flash.display.MovieClip;
+
+    public class CutScene
+    {
+        private var _gameScreen:GameScreen;
+
+        private var frames:int = 0;
+
+        private var counter:int = 0;
+
+        private var overlay:MovieClip;
+
+
+        private var unitsAvailable:Array;
+
+        public function CutScene(gs:GameScreen)
+        {
+            _gameScreen = gs;
+            unitsAvailable = [];
+            super();
+        }
+
+        public function message(msg:InGameMessage, sec:int = 6, counter:Boolean = false) : void
+        {
+            if(Boolean(msg) && _gameScreen.contains(msg))
+            {
+                msg.update();
+                if(frames++ > 30 * sec && (sec != 0 || sec == null))
+                {
+                    _gameScreen.removeChild(msg);
+                }
+            }
+        }
+
+        public function startMsg(msg1:String, msg2:String = "", y:* = 0, sound:String = "", comp:Boolean = false) : InGameMessage
+        {
+            var msg:InGameMessage = new InGameMessage("",_gameScreen.game);
+            msg = new InGameMessage("",_gameScreen.game);
+            msg.x = _gameScreen.game.stage.stageWidth / 2;
+            msg.y = _gameScreen.game.stage.stageHeight / 4 - 75;
+            msg.scaleX *= 1.3;
+            msg.scaleY *= 1.3;
+            _gameScreen.addChild(msg);
+            msg.setMessage(msg1,msg2,y,sound,comp);
+            frames = 0;
+            //break;
+            return msg;
+        }
+
+        public function deleteMessage(msg:InGameMessage) : void
+        {
+            if(Boolean(msg) && _gameScreen.contains(msg))
+            {
+                _gameScreen.removeChild(msg);
+            }
+        }
+
+        public function addlayer() : void
+        {
+            this.overlay = new MovieClip();
+            this.overlay.graphics.beginFill(0,1);
+            this.overlay.graphics.drawRect(0,0,850,750);
+            _gameScreen.addChild(this.overlay);
+            this.overlay.alpha = 0;
+        }
+        
+        public function fadelayer(sec:int = 2, outcome:Boolean = true) : void
+        {
+            if(outcome) // Fading in
+            {
+                if (this.overlay.alpha < 1)
+                {
+                    this.overlay.alpha += (1 / (30 * sec));
+                }
+            }
+            else
+            {
+                if (this.overlay.alpha > 0)
+                {
+                    this.overlay.alpha -= (1 / (30 * sec));
+                }
+            }
+        }
+
+        public function follow(un:Unit) : void
+        {
+            _gameScreen.game.targetScreenX = un.px - _gameScreen.game.map.screenWidth / 2;
+        }
+
+        public function infrontUnit(team:Team) : Unit
+        {
+            return team.forwardUnit;
+        }
+
+        public function removelayer() : void
+        {
+            _gameScreen.removeChild(this.overlay);
+            counter = 0;
+        }
+
+        public function statelayer(outcome:Boolean = true) : Boolean
+        {
+            if(outcome)
+            {
+                return this.overlay.alpha >= 1;
+            }
+            else if(!outcome)
+            {
+                return this.overlay.alpha <= 0;
+            }
+        }
+
+        public function cleanUp(ui:Boolean = true) : void
+        {
+            var team:Team = _gameScreen.game.team;
+            var enemyTeam:Team = _gameScreen.game.team.enemyTeam;
+            // var unit:Unit = null;
+
+            team.gold = team.mana = 0;
+            enemyTeam.gold = enemyTeam.mana = 0;
+            team.cleanUpUnits();
+            enemyTeam.cleanUpUnits();
+            
+            if(ui)
+            {
+                var hud:MovieClip = _gameScreen.userInterface.hud.hud;
+                var i:int = 0;
+                hud.economicDisplay.visible = false;
+                hud.economicDisplay.alpha = 0;
+
+                if(hud.fastForward != null)
+                {
+                    hud.fastForward.visible = false;
+                }
+
+                for (var i:int in _gameScreen.team.unitsAvailable)
+                {
+                    unitsAvailable.push(i);
+                    delete _gameScreen.team.unitsAvailable[i];
+                }  
+            }
+        }
+
+        public function postCleanUp(ui:Boolean = true) : void
+        {
+            var team:Team = _gameScreen.game.team;
+            var enemyTeam:Team = _gameScreen.game.team.enemyTeam;
+            // var unit:Unit = null;
+
+            
+            
+            if(ui)
+            {
+                var hud:MovieClip = _gameScreen.userInterface.hud.hud;
+                var i:int = 0;
+                hud.economicDisplay.visible = true;
+                hud.economicDisplay.alpha = 1;
+                if(hud.fastForward != null)
+                {
+                    hud.fastForward.visible = true;
+                }
+
+                while(i < unitsAvailable.length)
+                {
+                    _gameScreen.team.unitsAvailable[unitsAvailable[i]] = 1;
+                    i++;
+                }  
+            }
+        }
+
+        public function summonWall(team:Team, x:int = 0, direction:int = 1, maxHealth:int = 400, health:int = -1) : void
+        {
+            var wall:Wall = null;
+            var i:int = 0; 
+            (wall = team.addWall(x)).setConstructionAmount(1);
+            while(i < wall.wallParts.length)
+            {
+                var wallSpike:* = wall.wallParts[i];
+                wallSpike.scaleX *= direction;
+                i++;
+            }
+            wall.maxHealth = maxHealth;
+            wall.health = (health != -1) ? health : maxHealth;
+            wall.healthBar.totalHealth = maxHealth;
+        }
+    }
+} 
+package com.brockw.stickwar.campaign.controllers.EasyController
+{
+    import flash.display.*;
+    import flash.text.*;
+    import flash.ui.*;
+    
+    public class Draw
+    {
+
+        public static const screen_width:Number = 850;
+
+        public static const screen_height:Number = 700;
+
+        public static const width_center:Number = 425;
+
+        public static const height_center:Number = 350;
+
+        public function Draw()
+        {
+            super();
+        }
+
+        public function createTextField(width:Number, height:Number, fontSize:int, color:uint) : TextField 
+        {
+            var textField:TextField = new TextField();
+            
+            textField.width = width;
+            textField.height = height;
+        
+            var textFormat:TextFormat = new TextFormat("Arial", int(fontSize), hexToDecimal(color));
+            textField.defaultTextFormat = textFormat;
+            textField.multiline = true;
+            textField.wordWrap = true;
+
+            textField.antiAliasType = AntiAliasType.ADVANCED;
+            textField.embedFonts = true;
+            
+            return textField;
+        }
+        
+        public function createRectangle(width:Number, height:Number, color:String, transparency:Number) : Shape 
+        {
+            var rectangle:Shape = new Shape();
+            
+            rectangle.graphics.beginFill(hexToDecimal(color), transparency);
+            rectangle.graphics.drawRect(0, 0, width, height);
+            rectangle.graphics.endFill();
+            
+            return rectangle;
+        }
+
+        public function hexToDecimal(hexColor:String) : uint
+        {
+            hexColor = hexColor.replace("#", "");
+            var red:uint = uint("0x" + hexColor.substr(0, 2));
+            var green:uint = uint("0x" + hexColor.substr(2, 2));
+            var blue:uint = uint("0x" + hexColor.substr(4, 2));
+            
+            var decimalColor:uint = (red << 16) | (green << 8) | blue;
+
+            return decimalColor;
+        }
+    }
+} 
+package com.brockw.stickwar.campaign.controllers.EasyController
 {
    import com.brockw.stickwar.engine.units.*;
    import com.brockw.stickwar.engine.units.elementals.*;
@@ -634,68 +1350,251 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          }
          return "{Target Is Not a Unit}";
       }
+
+      public static function setUnitType(param1:Unit, param2:String) : void
+      {
+         if(param1.type == Unit.U_MINER)
+         {
+            param1.minerType = param2;
+         }
+         if(param1.type == Unit.U_SWORDWRATH)
+         {
+            param1.swordwrathType = param2;
+         }
+         if(param1.type == Unit.U_ARCHER)
+         {
+            param1.archerType = param2;
+         }
+         if(param1.type == Unit.U_SPEARTON)
+         {
+            param1.speartonType = param2;
+         }
+         if(param1.type == Unit.U_NINJA)
+         {
+            param1.ninjaType = param2;
+         }
+         if(param1.type == Unit.U_FLYING_CROSSBOWMAN)
+         {
+            param1.flyingCrossbowmanType = param2;
+         }
+         if(param1.type == Unit.U_MONK)
+         {
+            param1.monkType = param2;
+         }
+         if(param1.type == Unit.U_MAGIKILL)
+         {
+            param1.magikillType = param2;
+         }
+         if(param1.type == Unit.U_ENSLAVED_GIANT)
+         {
+            param1.enslavedgiantType = param2;
+         }
+         if(param1.type == Unit.U_CHAOS_MINER)
+         {
+            param1.chaosminerType = param2;
+         }
+         if(param1.type == Unit.U_BOMBER)
+         {
+            param1.bomberType = param2;
+         }
+         if(param1.type == Unit.U_WINGIDON)
+         {
+            param1.wingidonType = param2;
+         }
+         if(param1.type == Unit.U_SKELATOR)
+         {
+            param1.skelatorType = param2;
+         }
+         if(param1.type == Unit.U_DEAD)
+         {
+            param1.deadType = param2;
+         }
+         if(param1.type == Unit.U_CAT)
+         {
+            param1.catType = param2;
+         }
+         if(param1.type == Unit.U_KNIGHT)
+         {
+            param1.knightType = param2;
+         }
+         if(param1.type == Unit.U_MEDUSA)
+         {
+            param1.medusaType = param2;
+         }
+         if(param1.type == Unit.U_GIANT)
+         {
+            param1.giantType = param2;
+         }
+         if(param1.type == Unit.U_FIRE_ELEMENT)
+         {
+            param1.fireElementType = param2;
+         }
+         if(param1.type == Unit.U_EARTH_ELEMENT)
+         {
+            param1.earthElementType = param2;
+         }
+         if(param1.type == Unit.U_WATER_ELEMENT)
+         {
+            param1.waterElementType = param2;
+         }
+         if(param1.type == Unit.U_AIR_ELEMENT)
+         {
+            param1.airElementType = param2;
+         }
+         if(param1.type == Unit.U_LAVA_ELEMENT)
+         {
+            param1.lavaElementType = param2;
+         }
+         if(param1.type == Unit.U_HURRICANE_ELEMENT)
+         {
+            param1.hurricaneElementType = param2;
+         }
+         if(param1.type == Unit.U_FIRESTORM_ELEMENT)
+         {
+            param1.infernosType = param2;
+         }
+         if(param1.type == Unit.U_SCORPION_ELEMENT)
+         {
+            param1.scorpType = param2;
+         }
+         if(param1.type == Unit.U_CHROME_ELEMENT)
+         {
+            param1.chromeElementType = param2;
+         }
+      }
    }
-}package com.brockw.stickwar.campaign.controllers.EasyController
+} 
+package com.brockw.stickwar.campaign.controllers.EasyController
 {
     import com.brockw.stickwar.GameScreen;
-    import com.brockw.stickwar.campaign.CampaignGameScreen;
-    import flash.filters.*;
+    import com.brockw.stickwar.campaign.controllers.EasyController.*;
+    import flash.system.*;
+    import flash.display.*;
+    import flash.events.*;
+    import flash.net.*;
     import flash.text.*;
 
-    public class Debug
+    public class Loader
     {
+        public static const version:String = "EC_1.1.0W1"; 
 
-      private var _gameScreen:GameScreen;
+        public static const date:String = "10-12-2023";
 
-      public var debugTextA:TextField;
+        public static const developer:String = "dyzqy";
 
-      public var comment:String;
-
-      public function Debug(gameScreen:GameScreen)
-      {
-         super();
-         this._gameScreen = gameScreen;
-         this.debugTextA = new TextField();
-      }
-
-      public function Statistics(txt:String, txt2:String = "", txt3:String = "", txt4:String = "", txt5:String = "", txt6:String = "") : void
-      {
-         debugTextA.htmlText = txt + "\n" + txt2 + "\n" + txt3 + "\n" + txt4 + "\n" + txt5 + "\n" + txt6;
-      }
-
-      public function SimulateStats() : void
-      {
-         doDebugText(_gameScreen);
-      }
-      
-      public function Log(msg:String) : void
-      {
-         trace(msg);
-         throw new Error(msg);
-      }
-
-      public function LogError(msg:String) : void
-      {
-         throw new Error(msg);
-      }
+        public static const help:String = "AsePlayer, s07, RinasSam"; // in alphabetical order, not in help amount.
 
 
-      public function doDebugText(gameScreen:GameScreen) : *
-      {
-         var textFormat:TextFormat = new TextFormat("Arial",12,16777215);
-         debugTextA.defaultTextFormat = textFormat;
-         debugTextA.multiline = true;
-         debugTextA.wordWrap = true;
-         debugTextA.height = 225;
-         debugTextA.width = 250;
-         gameScreen.userInterface.hud.addChild(debugTextA);
-         debugTextA.x = 10;
-         debugTextA.y = 10;
-         var dropShadowFilter:DropShadowFilter = new DropShadowFilter(4,45,0,1,0,0,1,3);
-         var glowFilter:GlowFilter = new GlowFilter(4079166,1,0,0,10,1,false,false);
-         glowFilter.blurX = 5;
-         glowFilter.blurY = 5;
-         debugTextA.filters = [glowFilter];
-      }
+        public var versionCheck:Boolean = false;
+
+        public var oldVersion:Boolean = false;
+
+        public var isBeta:Boolean = true;
+
+        private var description:TextField;
+
+        private var title:TextField;
+
+        private var _gameScreen:GameScreen;
+
+        public var stringMap:StringMap;
+
+        public function Loader(gameScreen:GameScreen)
+        {
+            super();
+            this.stringMap = new StringMap();
+            this._gameScreen = gameScreen;
+            if(versionCheck && !isBeta)
+            {
+                verifyVersion(version);
+            }
+        }
+
+        public function verifyVersion(currentVersion:String)
+        {
+            Security.allowDomain("raw.githubusercontent.com");
+            Security.allowInsecureDomain("raw.githubusercontent.com");
+            var request:URLRequest = new URLRequest("https://raw.githubusercontent.com/dyzqy/EasyController/main/Other/Other/version.txt");
+            var loader:URLLoader = new URLLoader();
+            request.method = URLRequestMethod.GET;
+            loader.dataFormat = URLLoaderDataFormat.TEXT;
+            loader.addEventListener(Event.COMPLETE, completeHandler);
+            loader.load(request);
+        }
+
+        function completeHandler(event:Event):void 
+        {
+            var loadedText:String = "EC_1.1.0";
+            var prefix:String = "EC_";
+
+            if (loadedText.indexOf(prefix) == 0) 
+            {
+                var loadedVersion:String = loadedText.substr(prefix.length);
+                var currentVersion:String = version.substr(prefix.length);
+                loadedVersion = loadedVersion.replace(/\./g, "");
+                currentVersion = currentVersion.replace(/\./g, "");
+            }
+
+            if(currentVersion == loadedVersion)
+            {
+                oldVersion = false;
+                // addMessage(0);
+            }
+            else if(currentVersion < loadedVersion)
+            {
+                oldVersion = true;
+                addMessage(1);
+            }
+            else if(currentVersion > loadedVersion && !isBeta)
+            {
+                oldVersion = true;
+                addMessage(2);
+            }
+            else
+            {
+                oldVersion = false;
+                // addMessage(0);
+            }
+        }
+
+        public function addMessage(errorID:int)
+        {
+            var link:String = "https://www.google.com";
+            createStuff();
+            if(errorID == 0)
+            {
+                title.htmlText = "Correct Version";
+                description.htmlText = "There are no issues, you are on the correct version.";
+            }
+            else if(errorID == 1)
+            {
+                title.htmlText = "Version Mismatch";
+                description.htmlText = "You are on an older version of EasyController. If you consider wanting more functionality, bug fixes and more, please <a href =" + link + " >update by clicking here</a>";
+            }
+            else if(errorID == 2)
+            {
+                title.htmlText = "Version Mismatch";
+                description.htmlText = "You are on a hier version of public EC. This message isn't supposed to be shown, please put 'versionCheck' to false";
+            }
+        }
+
+        public function createStuff()
+        {
+            var square:Sprite = Draw.createRectangle(400, 175, "#000000", 75);
+            square.x = Draw.width_center - (square.width / 2);
+            square.y = 75;
+            _gameScreen.addChild(square);
+
+            this.title = Draw.createTextField(400, 35, 14, "#ffbb00");
+            square.addChild(title);
+
+            this.description = Draw.createTextField(400, 35, 14, "#ffbb00");
+            description.y = title.height + description.height;
+            square.addChild(description);
+        }
     }
 }
+/*
+{
+    
+}*/ 

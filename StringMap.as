@@ -5,129 +5,80 @@ package com.brockw.stickwar.campaign.controllers.EasyController
    
    public class StringMap
    {
-
-      var units:Array = ["miner", "swordwrath", "archidon", "meric", "magikill", "spearton", "shadowrath", "albowtross", "egiant", "eminer", "crawler", "dead", "marrowkai", "medusa", "bomber", "juggerknight", "eclipsor", "giant", "earth", "water", "air", "fire", "treasure", "infernos", "cycloid", "scorpion", "v", "chomper"];
-
       public function StringMap()
       {
          super();
       }
-
-      function LevenshteinDistance(s1:String, s2:String) : int 
-      {
-         var distance:Array = new Array(s1.length + 1);
-
-         for (var i:int = 0; i <= s1.length; i++) 
-         {
-            distance[i] = new Array(s2.length + 1);
-            distance[i][0] = i;
-         }
-
-         for (var j:int = 0; j <= s2.length; j++) 
-         {
-            distance[0][j] = j;
-         }
-
-         for (var i:int = 1; i <= s1.length; i++) 
-         {
-            for (var j:int = 1; j <= s2.length; j++) {
-                  var cost:int = (s1.charAt(i - 1) == s2.charAt(j - 1)) ? 0 : 1;
-                  distance[i][j] = Math.min(
-                     Math.min(distance[i - 1][j] + 1, distance[i][j - 1] + 1),
-                     distance[i - 1][j - 1] + cost
-                  );
-            }
-         }
-
-         return distance[s1.length][s2.length];
-      }
-
-      function DetermineUnit(name:String) : String
-      {
-         var minDistance:int = int.MAX_VALUE;
-         var bestMatch:String = null;
-
-         for each (var unit:String in units) 
-         {
-            var distance:int = LevenshteinDistance(name.toLowerCase(), unit.toLowerCase());
-            if (distance < minDistance) 
-            {
-               minDistance = distance;
-               bestMatch = unit;
-            }
-         }
-
-         return bestMatch;
-      }
       
       public static function unitNameToType(param1:String) : int
       {
-        param1 = DetermineUnit(param1);
+        param1 = param1.toLowerCase();
+        param1 = param1.split(" ").join("");
          if(param1 == "miner")
          {
             return Unit.U_MINER;
          }
-         if(param1 == "swordwrath")
+         if(param1 == "swordwrath" || param1 == "sword" || param1 == "swordman")
          {
             return Unit.U_SWORDWRATH;
          }
-         if(param1 == "archidon")
+         if(param1 == "archidon" || param1 == "archer" || param1 == "arch")
          {
             return Unit.U_ARCHER;
          }
-         if(param1 == "spearton")
+         if(param1 == "spearton" || param1 == "spear")
          {
             return Unit.U_SPEARTON;
          }
-         if(param1 == "shadowwrath")
+         if(param1 == "ninja" || param1 == "shadow" || param1 == "shadowrath" || param1 == "shadowwrath")
          {
             return Unit.U_NINJA;
          }
-         if(param1 == "albowtross")
+         if(param1 == "flyingcrossbowman" || param1 == "albowtross" || param1 == "albow" || param1 == "crossbowman")
          {
             return Unit.U_FLYING_CROSSBOWMAN;
          }
-         if(pparam1 == "meric")
+         if(param1 == "monk" || param1 == "meric")
          {
             return Unit.U_MONK;
          }
-         if(param1 == "magikill")
+         if(param1 == "magikill" || param1 == "magi" || param1 == "magik")
          {
             return Unit.U_MAGIKILL;
          }
-         if(param1 == "egiant")
+         if(param1 == "enslavedgiant" || param1 == "egiant")
          {
             return Unit.U_ENSLAVED_GIANT;
          }
-         if(param1 == "eminer")
+         if(param1 == "chaosminer" || param1 == "minerchaos" || param1 == "cminer" || param1 == "minerc" || param1 == "enslavedminer" || param1 == "eminer")
          {
             return Unit.U_CHAOS_MINER;
          }
-         if(param1 == "bomber")
+         if(param1 == "bomber" || param1 == "bomb")
          {
             return Unit.U_BOMBER;
          }
-         if(param1 == "eclipsor")
+         if(param1 == "wingadon" || param1 == "eclipsor" || param1 == "wing" || param1 == "eclips")
          {
             return Unit.U_WINGIDON;
          }
-         if(param1 == "marrowkai")
+         if(param1 == "skelatalmage" || param1 == "skele" || param1 == "marrowkai" || param1 == "marrow")
          {
             return Unit.U_SKELATOR;
          }
-         if(param1 == "dead")
+         if(param1 == "dead" || param1 == "ded")
          {
             return Unit.U_DEAD;
          }
-         if(param1 == "crawler")
+         if(param1 == "cat" || param1 == "crawler" || param1 == "crawl")
          {
             return Unit.U_CAT;
          }
-         if(param1 == "juggerknight")
+         if(param1 == "knight" || param1 == "juggerknight" || param1 == "jugg")
          {
             return Unit.U_KNIGHT;
          }
-         if(param1 == "medusa")
+         if(param1 == "medusa" || param1 == "medu")
          {
             return Unit.U_MEDUSA;
          }
@@ -135,47 +86,47 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          {
             return Unit.U_GIANT;
          }
-         if(param1 == "fire")
+         if(param1 == "fireelement" || param1 == "fireele" || param1 == "fire")
          {
             return Unit.U_FIRE_ELEMENT;
          }
-         if(param1 == "earth")
+         if(param1 == "earthelement" || param1 == "earthele" || param1 == "earth")
          {
             return Unit.U_EARTH_ELEMENT;
          }
-         if(param1 == "water")
+         if(param1 == "waterelement" || param1 == "waterele" || param1 == "water")
          {
             return Unit.U_WATER_ELEMENT;
          }
-         if(param1 == "air")
+         if(param1 == "airelement" || param1 == "airele" || param1 == "air")
          {
             return Unit.U_AIR_ELEMENT;
          }
-         if(param1 == "lava")
+         if(param1 == "lavaelement" || param1 == "lavaele" || param1 == "charrog" || param1 == "lava")
          {
             return Unit.U_LAVA_ELEMENT;
          }
-         if(param1 == "cycloid")
+         if(param1 == "hurricaneelement" || param1 == "hurricaneele" || param1 == "cycloid" || param1 == "hurricane")
          {
             return Unit.U_HURRICANE_ELEMENT;
          }
-         if(param1 == "infernos")
+         if(param1 == "firestormelement" || param1 == "firestormele" || param1 == "infernos" || param1 == "firestorm")
          {
             return Unit.U_FIRESTORM_ELEMENT;
          }
-         if(param1 == "treasure")
+         if(param1 == "treeelement" || param1 == "treeele" || param1 == "treasure" || param1 == "tree")
          {
             return Unit.U_TREE_ELEMENT;
          }
-         if(param1 == "scorpion")
+         if(param1 == "scorpionelement" || param1 == "scorpionele" || param1 == "scorpion" || param1 == "scorp")
          {
             return Unit.U_SCORPION_ELEMENT;
          }
-         if(param1 == "v")
+         if(param1 == "chromeelement" || param1 == "chromeele" || param1 == "v" || param1 == "chrome")
          {
             return Unit.U_CHROME_ELEMENT;
          }
-         if(param1 == "chomper")
+         if(param1 == "minerelement" || param1 == "minerele" || param1 == "chomper" || param1 == "chomp" || param1 == "eminer")
          {
             return Unit.U_MINER_ELEMENT;
          }
@@ -301,6 +252,118 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             return "Chomper";
          }
          return "{Target Is Not a Unit}";
+      }
+
+      public static function setUnitType(param1:Unit, param2:String) : void
+      {
+         if(param1.type == Unit.U_MINER)
+         {
+            param1.minerType = param2;
+         }
+         if(param1.type == Unit.U_SWORDWRATH)
+         {
+            param1.swordwrathType = param2;
+         }
+         if(param1.type == Unit.U_ARCHER)
+         {
+            param1.archerType = param2;
+         }
+         if(param1.type == Unit.U_SPEARTON)
+         {
+            param1.speartonType = param2;
+         }
+         if(param1.type == Unit.U_NINJA)
+         {
+            param1.ninjaType = param2;
+         }
+         if(param1.type == Unit.U_FLYING_CROSSBOWMAN)
+         {
+            param1.flyingCrossbowmanType = param2;
+         }
+         if(param1.type == Unit.U_MONK)
+         {
+            param1.monkType = param2;
+         }
+         if(param1.type == Unit.U_MAGIKILL)
+         {
+            param1.magikillType = param2;
+         }
+         if(param1.type == Unit.U_ENSLAVED_GIANT)
+         {
+            param1.enslavedgiantType = param2;
+         }
+         if(param1.type == Unit.U_CHAOS_MINER)
+         {
+            param1.chaosminerType = param2;
+         }
+         if(param1.type == Unit.U_BOMBER)
+         {
+            param1.bomberType = param2;
+         }
+         if(param1.type == Unit.U_WINGIDON)
+         {
+            param1.wingidonType = param2;
+         }
+         if(param1.type == Unit.U_SKELATOR)
+         {
+            param1.skelatorType = param2;
+         }
+         if(param1.type == Unit.U_DEAD)
+         {
+            param1.deadType = param2;
+         }
+         if(param1.type == Unit.U_CAT)
+         {
+            param1.catType = param2;
+         }
+         if(param1.type == Unit.U_KNIGHT)
+         {
+            param1.knightType = param2;
+         }
+         if(param1.type == Unit.U_MEDUSA)
+         {
+            param1.medusaType = param2;
+         }
+         if(param1.type == Unit.U_GIANT)
+         {
+            param1.giantType = param2;
+         }
+         if(param1.type == Unit.U_FIRE_ELEMENT)
+         {
+            param1.fireElementType = param2;
+         }
+         if(param1.type == Unit.U_EARTH_ELEMENT)
+         {
+            param1.earthElementType = param2;
+         }
+         if(param1.type == Unit.U_WATER_ELEMENT)
+         {
+            param1.waterElementType = param2;
+         }
+         if(param1.type == Unit.U_AIR_ELEMENT)
+         {
+            param1.airElementType = param2;
+         }
+         if(param1.type == Unit.U_LAVA_ELEMENT)
+         {
+            param1.lavaElementType = param2;
+         }
+         if(param1.type == Unit.U_HURRICANE_ELEMENT)
+         {
+            param1.hurricaneElementType = param2;
+         }
+         if(param1.type == Unit.U_FIRESTORM_ELEMENT)
+         {
+            param1.infernosType = param2;
+         }
+         if(param1.type == Unit.U_SCORPION_ELEMENT)
+         {
+            param1.scorpType = param2;
+         }
+         if(param1.type == Unit.U_CHROME_ELEMENT)
+         {
+            param1.chromeElementType = param2;
+         }
       }
    }
 }

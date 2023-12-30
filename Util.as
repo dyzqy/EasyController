@@ -13,6 +13,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class Util
     {
+        private var registeredUnits;
+
         private var _gameScreen:GameScreen;
 
         private var debug:Debug;
@@ -282,6 +284,67 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                     unit = SummonUnit(StringMap.unitTypeToName(un.type), 1, un.team, Unit);
                     return unit;
                 }
+            }
+        }
+
+        public function registerUnit(units:*, team:Team) : void
+        {
+            var i:int = 0;
+            if(units is Array)
+            {
+                var level:* = this._gameScreen.main.campaign.getCurrentLevel();
+                while (i < units.length)
+                {
+                    var currentUnit:* = StringMap.unitNameToType(units[i]);
+                    
+                    if(team.unitInfo[currentUnit] == null)
+                    {
+                        team.unitInfo[currentUnit] = [(StringMap.unitTypeToXML(currentUnit, this._gameScreen.game)).gold * (StringMap.unitTypeToXML(currentUnit, this._gameScreen.game)).mana * level.insaneModifier];
+                        var unit:Unit = this._gameScreen.game.unitFactory.getUnit(int(currentUnit));
+                        unit.team = team;
+                        unit.setBuilding();
+                        team.unitInfo[currentUnit].push((team.buildings["BankBuilding"]).type);
+                        team.unitGroups[currentUnit] = [];
+                        this._gameScreen.game.unitFactory.returnUnit(currentUnit, unit);
+                    }
+                    i++;
+                }
+            }
+            else if(units is String)
+            {
+                var level:* = this._gameScreen.main.campaign.getCurrentLevel();
+                var currentUnit:* = StringMap.unitNameToType(units);
+                    
+                if(team.unitInfo[currentUnit] == null)
+                {
+                    team.unitInfo[currentUnit] = [(StringMap.unitTypeToXML(currentUnit, this._gameScreen.game)).gold * (StringMap.unitTypeToXML(currentUnit, this._gameScreen.game)).mana * level.insaneModifier];
+                    var unit:Unit = this._gameScreen.game.unitFactory.getUnit(int(currentUnit));
+                    unit.team = team;
+                    unit.setBuilding();
+                    team.unitInfo[currentUnit].push((team.buildings["BankBuilding"]).type);
+                    team.unitGroups[currentUnit] = [];
+                    this._gameScreen.game.unitFactory.returnUnit(currentUnit, unit);    
+                }
+            }
+            else if(units is int)
+            {
+                var level:* = this._gameScreen.main.campaign.getCurrentLevel();
+                var currentUnit:* = units;
+                    
+                if(team.unitInfo[currentUnit] == null)
+                {
+                    team.unitInfo[currentUnit] = [(StringMap.unitTypeToXML(currentUnit, this._gameScreen.game)).gold * (StringMap.unitTypeToXML(currentUnit, this._gameScreen.game)).mana * level.insaneModifier];
+                    var unit:Unit = this._gameScreen.game.unitFactory.getUnit(int(currentUnit));
+                    unit.team = team;
+                    unit.setBuilding();
+                    team.unitInfo[currentUnit].push((team.buildings["BankBuilding"]).type);
+                    team.unitGroups[currentUnit] = [];
+                    this._gameScreen.game.unitFactory.returnUnit(currentUnit, unit);    
+                }
+            }
+            else
+            {
+                throw new Error("The first paramater of util.registerUnit() must be a String or an Array of Strings.");
             }
         }
     }

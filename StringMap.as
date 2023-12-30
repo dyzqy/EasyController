@@ -1,5 +1,6 @@
 package com.brockw.stickwar.campaign.controllers.EasyController
 {
+   import com.brockw.stickwar.engine.StickWar;
    import com.brockw.stickwar.engine.units.*;
    import com.brockw.stickwar.engine.units.elementals.*;
    
@@ -364,6 +365,127 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          {
             param1.chromeElementType = param2;
          }
+      }
+
+      public static function unitTypeToXML(param1:int, param2:StickWar) : XMLList
+      {
+         if(param1 == Unit.U_MINER)
+         {
+            return param2.xml.xml.Order.Units.miner;
+         }
+         if(param1 == Unit.U_SWORDWRATH)
+         {
+            return param2.xml.xml.Order.Units.swordwrath;
+         }
+         if(param1 == Unit.U_ARCHER)
+         {
+            return param2.xml.xml.Order.Units.archer;
+         }
+         if(param1 == Unit.U_SPEARTON)
+         {
+            return param2.xml.xml.Order.Units.spearton;
+         }
+         if(param1 == Unit.U_NINJA)
+         {
+            return param2.xml.xml.Order.Units.ninja;
+         }
+         if(param1 == Unit.U_FLYING_CROSSBOWMAN)
+         {
+            return param2.xml.xml.Order.Units.flyingCrossbowman;
+         }
+         if(param1 == Unit.U_MONK)
+         {
+            return param2.xml.xml.Order.Units.monk;
+         }
+         if(param1 == Unit.U_MAGIKILL)
+         {
+            return param2.xml.xml.Order.Units.magikill;
+         }
+         if(param1 == Unit.U_ENSLAVED_GIANT)
+         {
+            return param2.xml.xml.Order.Units.giant;
+         }
+         if(param1 == Unit.U_CHAOS_MINER)
+         {
+            return param2.xml.xml.Chaos.Units.miner;
+         }
+         if(param1 == Unit.U_BOMBER)
+         {
+            return param2.xml.xml.Chaos.Units.bomber;
+         }
+         if(param1 == Unit.U_WINGIDON)
+         {
+            return param2.xml.xml.Chaos.Units.wingidon;
+         }
+         if(param1 == Unit.U_SKELATOR)
+         {
+            return param2.xml.xml.Chaos.Units.skelator;
+         }
+         if(param1 == Unit.U_DEAD)
+         {
+            return param2.xml.xml.Chaos.Units.dead;
+         }
+         if(param1 == Unit.U_CAT)
+         {
+            return param2.xml.xml.Chaos.Units.cat;
+         }
+         if(param1 == Unit.U_KNIGHT)
+         {
+            return param2.xml.xml.Chaos.Units.knight;
+         }
+         if(param1 == Unit.U_MEDUSA)
+         {
+            return param2.xml.xml.Chaos.Units.medusa;
+         }
+         if(param1 == Unit.U_GIANT)
+         {
+            return param2.xml.xml.Chaos.Units.giant;
+         }
+         if(param1 == Unit.U_FIRE_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.fireElement;
+         }
+         if(param1 == Unit.U_EARTH_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.earthElement;
+         }
+         if(param1 == Unit.U_WATER_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.waterElement;
+         }
+         if(param1 == Unit.U_AIR_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.airElement;
+         }
+         if(param1 == Unit.U_LAVA_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.lavaElement;
+         }
+         if(param1 == Unit.U_HURRICANE_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.hurricaneElement;
+         }
+         if(param1 == Unit.U_FIRESTORM_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.firestormElement;
+         }
+         if(param1 == Unit.U_TREE_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.treeElement;
+         }
+         if(param1 == Unit.U_SCORPION_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.scorpionElement;
+         }
+         if(param1 == Unit.U_CHROME_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.chrome;
+         }
+         if(param1 == Unit.U_MINER_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.miner;
+         }
+         return null;
       }
    }
 }

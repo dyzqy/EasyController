@@ -31,9 +31,9 @@ package com.brockw.stickwar.campaign.controllers
 
          if(this.draw == null)
          {
-            this.draw = new Draw();
             this.loader = new Loader(gameScreen);
 
+            this.draw = loader.draw;
             this.stringMap = loader.stringMap;
             this.data = new Data(gameScreen);
             this.debug = new Debug(gameScreen);
@@ -565,6 +565,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class Util
     {
+        private var registeredUnits;
+
         private var _gameScreen:GameScreen;
 
         private var debug:Debug;
@@ -836,6 +838,67 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                 }
             }
         }
+
+        public function registerUnit(units:*, team:Team) : void
+        {
+            var i:int = 0;
+            if(units is Array)
+            {
+                var level:* = this._gameScreen.main.campaign.getCurrentLevel();
+                while (i < units.length)
+                {
+                    var currentUnit:* = StringMap.unitNameToType(units[i]);
+                    
+                    if(team.unitInfo[currentUnit] == null)
+                    {
+                        team.unitInfo[currentUnit] = [(StringMap.unitTypeToXML(currentUnit, this._gameScreen.game)).gold * (StringMap.unitTypeToXML(currentUnit, this._gameScreen.game)).mana * level.insaneModifier];
+                        var unit:Unit = this._gameScreen.game.unitFactory.getUnit(int(currentUnit));
+                        unit.team = team;
+                        unit.setBuilding();
+                        team.unitInfo[currentUnit].push((team.buildings["BankBuilding"]).type);
+                        team.unitGroups[currentUnit] = [];
+                        this._gameScreen.game.unitFactory.returnUnit(currentUnit, unit);
+                    }
+                    i++;
+                }
+            }
+            else if(units is String)
+            {
+                var level:* = this._gameScreen.main.campaign.getCurrentLevel();
+                var currentUnit:* = StringMap.unitNameToType(units);
+                    
+                if(team.unitInfo[currentUnit] == null)
+                {
+                    team.unitInfo[currentUnit] = [(StringMap.unitTypeToXML(currentUnit, this._gameScreen.game)).gold * (StringMap.unitTypeToXML(currentUnit, this._gameScreen.game)).mana * level.insaneModifier];
+                    var unit:Unit = this._gameScreen.game.unitFactory.getUnit(int(currentUnit));
+                    unit.team = team;
+                    unit.setBuilding();
+                    team.unitInfo[currentUnit].push((team.buildings["BankBuilding"]).type);
+                    team.unitGroups[currentUnit] = [];
+                    this._gameScreen.game.unitFactory.returnUnit(currentUnit, unit);    
+                }
+            }
+            else if(units is int)
+            {
+                var level:* = this._gameScreen.main.campaign.getCurrentLevel();
+                var currentUnit:* = units;
+                    
+                if(team.unitInfo[currentUnit] == null)
+                {
+                    team.unitInfo[currentUnit] = [(StringMap.unitTypeToXML(currentUnit, this._gameScreen.game)).gold * (StringMap.unitTypeToXML(currentUnit, this._gameScreen.game)).mana * level.insaneModifier];
+                    var unit:Unit = this._gameScreen.game.unitFactory.getUnit(int(currentUnit));
+                    unit.team = team;
+                    unit.setBuilding();
+                    team.unitInfo[currentUnit].push((team.buildings["BankBuilding"]).type);
+                    team.unitGroups[currentUnit] = [];
+                    this._gameScreen.game.unitFactory.returnUnit(currentUnit, unit);    
+                }
+            }
+            else
+            {
+                throw new Error("The first paramater of util.registerUnit() must be a String or an Array of Strings.");
+            }
+        }
     }
 } 
 package com.brockw.stickwar.campaign.controllers.EasyController
@@ -889,7 +952,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             _gameScreen.addChild(msg);
             msg.setMessage(msg1,msg2,y,sound,comp);
             frames = 0;
-            //break;
             return msg;
         }
 
@@ -973,6 +1035,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                 var i:int = 0;
                 hud.economicDisplay.visible = false;
                 hud.economicDisplay.alpha = 0;
+                _gameScreen.userInterface.isGlobalsEnabled = false;
 
                 if(hud.fastForward != null)
                 {
@@ -983,7 +1046,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                 {
                     unitsAvailable.push(i);
                     delete _gameScreen.team.unitsAvailable[i];
-                }  
+                }
             }
         }
 
@@ -1001,6 +1064,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                 var i:int = 0;
                 hud.economicDisplay.visible = true;
                 hud.economicDisplay.alpha = 1;
+                _gameScreen.userInterface.isGlobalsEnabled = true;
                 if(hud.fastForward != null)
                 {
                     hud.fastForward.visible = true;
@@ -1097,6 +1161,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 } 
 package com.brockw.stickwar.campaign.controllers.EasyController
 {
+   import com.brockw.stickwar.engine.StickWar;
    import com.brockw.stickwar.engine.units.*;
    import com.brockw.stickwar.engine.units.elementals.*;
    
@@ -1462,6 +1527,127 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             param1.chromeElementType = param2;
          }
       }
+
+      public static function unitTypeToXML(param1:int, param2:StickWar) : XMLList
+      {
+         if(param1 == Unit.U_MINER)
+         {
+            return param2.xml.xml.Order.Units.miner;
+         }
+         if(param1 == Unit.U_SWORDWRATH)
+         {
+            return param2.xml.xml.Order.Units.swordwrath;
+         }
+         if(param1 == Unit.U_ARCHER)
+         {
+            return param2.xml.xml.Order.Units.archer;
+         }
+         if(param1 == Unit.U_SPEARTON)
+         {
+            return param2.xml.xml.Order.Units.spearton;
+         }
+         if(param1 == Unit.U_NINJA)
+         {
+            return param2.xml.xml.Order.Units.ninja;
+         }
+         if(param1 == Unit.U_FLYING_CROSSBOWMAN)
+         {
+            return param2.xml.xml.Order.Units.flyingCrossbowman;
+         }
+         if(param1 == Unit.U_MONK)
+         {
+            return param2.xml.xml.Order.Units.monk;
+         }
+         if(param1 == Unit.U_MAGIKILL)
+         {
+            return param2.xml.xml.Order.Units.magikill;
+         }
+         if(param1 == Unit.U_ENSLAVED_GIANT)
+         {
+            return param2.xml.xml.Order.Units.giant;
+         }
+         if(param1 == Unit.U_CHAOS_MINER)
+         {
+            return param2.xml.xml.Chaos.Units.miner;
+         }
+         if(param1 == Unit.U_BOMBER)
+         {
+            return param2.xml.xml.Chaos.Units.bomber;
+         }
+         if(param1 == Unit.U_WINGIDON)
+         {
+            return param2.xml.xml.Chaos.Units.wingidon;
+         }
+         if(param1 == Unit.U_SKELATOR)
+         {
+            return param2.xml.xml.Chaos.Units.skelator;
+         }
+         if(param1 == Unit.U_DEAD)
+         {
+            return param2.xml.xml.Chaos.Units.dead;
+         }
+         if(param1 == Unit.U_CAT)
+         {
+            return param2.xml.xml.Chaos.Units.cat;
+         }
+         if(param1 == Unit.U_KNIGHT)
+         {
+            return param2.xml.xml.Chaos.Units.knight;
+         }
+         if(param1 == Unit.U_MEDUSA)
+         {
+            return param2.xml.xml.Chaos.Units.medusa;
+         }
+         if(param1 == Unit.U_GIANT)
+         {
+            return param2.xml.xml.Chaos.Units.giant;
+         }
+         if(param1 == Unit.U_FIRE_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.fireElement;
+         }
+         if(param1 == Unit.U_EARTH_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.earthElement;
+         }
+         if(param1 == Unit.U_WATER_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.waterElement;
+         }
+         if(param1 == Unit.U_AIR_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.airElement;
+         }
+         if(param1 == Unit.U_LAVA_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.lavaElement;
+         }
+         if(param1 == Unit.U_HURRICANE_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.hurricaneElement;
+         }
+         if(param1 == Unit.U_FIRESTORM_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.firestormElement;
+         }
+         if(param1 == Unit.U_TREE_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.treeElement;
+         }
+         if(param1 == Unit.U_SCORPION_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.scorpionElement;
+         }
+         if(param1 == Unit.U_CHROME_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.chrome;
+         }
+         if(param1 == Unit.U_MINER_ELEMENT)
+         {
+            return param2.xml.xml.Elemental.Units.miner;
+         }
+         return null;
+      }
    }
 } 
 package com.brockw.stickwar.campaign.controllers.EasyController
@@ -1476,9 +1662,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class Loader
     {
-        public static const version:String = "EC_1.1.0"; 
+        public static const version:String = "EC_1.2.0";
 
-        public static const date:String = "29-12-2023"; // Happy BD to Stick War 2 Custom Mods!
+        public static const date:String = "30-12-2023";
 
         public static const developer:String = "dyzqy";
 
@@ -1487,9 +1673,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public var versionCheck:Boolean = false;
 
-        public var oldVersion:Boolean = false;
-
-        public var isBeta:Boolean = true;
+        public var isBeta:Boolean = false;
 
         private var description:TextField;
 
@@ -1499,11 +1683,17 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public var stringMap:StringMap;
 
+        public var draw:Draw;
+
+        public var oldVersion:Boolean;
+
         public function Loader(gameScreen:GameScreen)
         {
             super();
             this.stringMap = new StringMap();
+            this.draw = new Draw();
             this._gameScreen = gameScreen;
+            allowDomain("raw.githubusercontent.com");
             if(versionCheck && !isBeta)
             {
                 verifyVersion(version);
@@ -1512,9 +1702,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public function verifyVersion(currentVersion:String)
         {
-            Security.allowDomain("raw.githubusercontent.com");
-            Security.allowInsecureDomain("raw.githubusercontent.com");
-            var request:URLRequest = new URLRequest("https://raw.githubusercontent.com/dyzqy/EasyController/main/Other/Other/version.txt");
+            allowDomain("raw.githubusercontent.com");
+            var request:URLRequest = new URLRequest("https://raw.githubusercontent.com/dyzqy/EasyController/main/Other/version.txt");
             var loader:URLLoader = new URLLoader();
             request.method = URLRequestMethod.GET;
             loader.dataFormat = URLLoaderDataFormat.TEXT;
@@ -1524,7 +1713,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         function completeHandler(event:Event):void 
         {
-            var loadedText:String = "EC_1.1.0";
+            var loadedText:String = loader.data;
             var prefix:String = "EC_";
 
             if (loadedText.indexOf(prefix) == 0) 
@@ -1574,27 +1763,34 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             else if(errorID == 2)
             {
                 title.htmlText = "Version Mismatch";
-                description.htmlText = "You are on a hier version of public EC. This message isn't supposed to be shown, please put 'versionCheck' to false";
+                description.htmlText = "You are on a hier version of public EasyController. This message isn't supposed to be shown, please put 'versionCheck' to false or contact the developer(" + developer + ").";
             }
         }
 
-        public function createStuff()
+        public function createStuff() : void
         {
-            var square:Sprite = Draw.createRectangle(400, 175, "#000000", 75);
-            square.x = Draw.width_center - (square.width / 2);
+            var container:Sprite = new Sprite();
+            _gameScreen.addChild(container);
+
+            var square:Shape = draw.createRectangle(400, 175, "#000000", 75);
+            square.x = 425 - (square.width / 2);
             square.y = 75;
-            _gameScreen.addChild(square);
+            container.addChild(square);
 
-            this.title = Draw.createTextField(400, 35, 14, "#ffbb00");
-            square.addChild(title);
+            this.title = draw.createTextField(400, 35, 14, "#ffbb00");
+            container.addChild(title);
 
-            this.description = Draw.createTextField(400, 35, 14, "#ffbb00");
+            this.description = draw.createTextField(400, 35, 14, "#ffbb00");
             description.y = title.height + description.height;
-            square.addChild(description);
+            container.addChild(description);
+        }
+
+        public function allowDomain(site:String = "raw.githubusercontent.com") : void
+        {
+            Security.allowDomain(site);
+            /*Security.allowInsecureDomain(site);
+            Security.allowDomain("*");
+            Security.allowInsecureDomain("*");*/
         }
     }
-}
-/*
-{
-    
-}*/ 
+} 

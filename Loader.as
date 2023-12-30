@@ -10,9 +10,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class Loader
     {
-        public static const version:String = "EC_1.1.0"; 
+        public static const version:String = "EC_1.2.0";
 
-        public static const date:String = "29-12-2023"; // Happy BD to Stick War 2 Custom Mods!
+        public static const date:String = "30-12-2023";
 
         public static const developer:String = "dyzqy";
 
@@ -21,9 +21,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public var versionCheck:Boolean = false;
 
-        public var oldVersion:Boolean = false;
-
-        public var isBeta:Boolean = true;
+        public var isBeta:Boolean = false;
 
         private var description:TextField;
 
@@ -33,11 +31,17 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public var stringMap:StringMap;
 
+        public var draw:Draw;
+
+        public var oldVersion:Boolean;
+
         public function Loader(gameScreen:GameScreen)
         {
             super();
             this.stringMap = new StringMap();
+            this.draw = new Draw();
             this._gameScreen = gameScreen;
+            allowDomain("raw.githubusercontent.com");
             if(versionCheck && !isBeta)
             {
                 verifyVersion(version);
@@ -46,9 +50,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public function verifyVersion(currentVersion:String)
         {
-            Security.allowDomain("raw.githubusercontent.com");
-            Security.allowInsecureDomain("raw.githubusercontent.com");
-            var request:URLRequest = new URLRequest("https://raw.githubusercontent.com/dyzqy/EasyController/main/Other/Other/version.txt");
+            allowDomain("raw.githubusercontent.com");
+            var request:URLRequest = new URLRequest("https://raw.githubusercontent.com/dyzqy/EasyController/main/Other/version.txt");
             var loader:URLLoader = new URLLoader();
             request.method = URLRequestMethod.GET;
             loader.dataFormat = URLLoaderDataFormat.TEXT;
@@ -58,7 +61,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         function completeHandler(event:Event):void 
         {
-            var loadedText:String = "EC_1.1.0";
+            var loadedText:String = loader.data;
             var prefix:String = "EC_";
 
             if (loadedText.indexOf(prefix) == 0) 
@@ -108,27 +111,34 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             else if(errorID == 2)
             {
                 title.htmlText = "Version Mismatch";
-                description.htmlText = "You are on a hier version of public EC. This message isn't supposed to be shown, please put 'versionCheck' to false";
+                description.htmlText = "You are on a hier version of public EasyController. This message isn't supposed to be shown, please put 'versionCheck' to false or contact the developer(" + developer + ").";
             }
         }
 
-        public function createStuff()
+        public function createStuff() : void
         {
-            var square:Sprite = Draw.createRectangle(400, 175, "#000000", 75);
-            square.x = Draw.width_center - (square.width / 2);
+            var container:Sprite = new Sprite();
+            _gameScreen.addChild(container);
+
+            var square:Shape = draw.createRectangle(400, 175, "#000000", 75);
+            square.x = 425 - (square.width / 2);
             square.y = 75;
-            _gameScreen.addChild(square);
+            container.addChild(square);
 
-            this.title = Draw.createTextField(400, 35, 14, "#ffbb00");
-            square.addChild(title);
+            this.title = draw.createTextField(400, 35, 14, "#ffbb00");
+            container.addChild(title);
 
-            this.description = Draw.createTextField(400, 35, 14, "#ffbb00");
+            this.description = draw.createTextField(400, 35, 14, "#ffbb00");
             description.y = title.height + description.height;
-            square.addChild(description);
+            container.addChild(description);
+        }
+
+        public function allowDomain(site:String = "raw.githubusercontent.com") : void
+        {
+            Security.allowDomain(site);
+            /*Security.allowInsecureDomain(site);
+            Security.allowDomain("*");
+            Security.allowInsecureDomain("*");*/
         }
     }
 }
-/*
-{
-    
-}*/

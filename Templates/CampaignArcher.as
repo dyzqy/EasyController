@@ -35,7 +35,7 @@ package com.brockw.stickwar.campaign.controllers
 
         public function start(param1:GameScreen) : void
         {
-            debug.SimulateStats(14);
+            debug.SimulateStats(14); // Simulate stats can be used for info about level
             cs.summonWall(param1.team, data.center("x") - 300, -1, 1200);
             cs.summonWall(param1.team, data.center("x") + 300, 1, 1200);
             util.setLevelType("seige");
@@ -60,7 +60,7 @@ package com.brockw.stickwar.campaign.controllers
             }
             timeReinf = timeForReinforcements <= 0 ? "-" : timeForReinforcements + "s";
             timeWave = timeForWave > 0 ? timeForWave + "s" : "-";
-            debug.Statistics("Next Wave in " + timeWave, "Reinforcements in " + timeReinf, "Wave " + wave);
+            debug.Statistics("Next Wave in " + timeWave, "Reinforcements in " + timeReinf, "Wave " + wave); // Simulating stats about Time left for wave, reinforcements and currnt Wave!
 
             switch (wave)
             {

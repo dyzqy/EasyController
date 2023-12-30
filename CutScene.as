@@ -49,7 +49,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             _gameScreen.addChild(msg);
             msg.setMessage(msg1,msg2,y,sound,comp);
             frames = 0;
-            //break;
             return msg;
         }
 
@@ -133,6 +132,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                 var i:int = 0;
                 hud.economicDisplay.visible = false;
                 hud.economicDisplay.alpha = 0;
+                _gameScreen.userInterface.isGlobalsEnabled = false;
 
                 if(hud.fastForward != null)
                 {
@@ -143,7 +143,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                 {
                     unitsAvailable.push(i);
                     delete _gameScreen.team.unitsAvailable[i];
-                }  
+                }
             }
         }
 
@@ -161,6 +161,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                 var i:int = 0;
                 hud.economicDisplay.visible = true;
                 hud.economicDisplay.alpha = 1;
+                _gameScreen.userInterface.isGlobalsEnabled = true;
                 if(hud.fastForward != null)
                 {
                     hud.fastForward.visible = true;

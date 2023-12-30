@@ -31,9 +31,9 @@ package com.brockw.stickwar.campaign.controllers
 
          if(this.draw == null)
          {
-            this.draw = new Draw();
             this.loader = new Loader(gameScreen);
 
+            this.draw = loader.draw;
             this.stringMap = loader.stringMap;
             this.data = new Data(gameScreen);
             this.debug = new Debug(gameScreen);

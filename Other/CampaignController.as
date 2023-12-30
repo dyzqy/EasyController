@@ -1476,9 +1476,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class Loader
     {
-        public static const version:String = "EC_1.1.0W1"; 
+        public static const version:String = "EC_1.1.0"; 
 
-        public static const date:String = "10-12-2023";
+        public static const date:String = "29-12-2023"; // Happy BD to Stick War 2 Custom Mods!
 
         public static const developer:String = "dyzqy";
 

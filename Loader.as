@@ -10,9 +10,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class Loader
     {
-        public static const version:String = "EC_1.2.0";
+        public static const version:String = "EC_1.2.2";
 
-        public static const date:String = "30-12-2023";
+        public static const date:String = "31-12-2023";
 
         public static const developer:String = "dyzqy";
 

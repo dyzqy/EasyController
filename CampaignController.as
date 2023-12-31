@@ -18,9 +18,6 @@ package com.brockw.stickwar.campaign.controllers
       public var cs:CutScene;
 
       public var draw:Draw;
-
-      //public var win:Window;
-
       
       private var _gameScreen:GameScreen;
       
@@ -37,9 +34,8 @@ package com.brockw.stickwar.campaign.controllers
             this.stringMap = loader.stringMap;
             this.data = new Data(gameScreen);
             this.debug = new Debug(gameScreen);
-            this.util = new Util(gameScreen);
+            this.util = new Util(gameScreen, this.debug);
             this.cs = new CutScene(gameScreen);
-            //this.win = new Window(gameScreen)
          }
       }
       

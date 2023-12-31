@@ -14,6 +14,9 @@ for %%f in (%filelist%) do (
     type "%inputfolder%\!filename!" >> %outputfile%
     echo. >> %outputfile%
 )
+
+type nul > %outputinstaller%
+
 for %%f in (%filelist%) do (
     set filename=%%f
     type "%inputfolder%\!filename!" >> %outputinstaller%

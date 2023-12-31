@@ -19,10 +19,11 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         private var debug:Debug;
 
-        public function Util(gameScreen:GameScreen)
+        public function Util(gameScreen:GameScreen, debugCl:Debug = null)
         {
             super();
             this._gameScreen = gameScreen;
+            this.debug = debugCl;
         }
 
         public function summonUnit(u1:*, copies:int, teamSpawn:Team, returnType:Class = null, type:* = null) : *
@@ -39,7 +40,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                 {
                     if(!(u1[j] is String))
                     {
-                        Debug(_gameScreen).error("Unit Name must be a String. SummonUnit().", "Util");
+                        debug.error("Unit Name must be a String. SummonUnit().", "Util");
+                        return;
                     }
                     while(i < copies)
                     {
@@ -57,7 +59,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                             }
                             else
                             {
-                                Debug(_gameScreen).error("Invalid parameter for 'unitType'. The parameter must be either a String or an Array of Strings.", "Util");
+                                debug.error("Invalid parameter for 'unitType'. The parameter must be either a String or an Array of Strings.", "Util");
                             }
                             
                         }*/
@@ -86,7 +88,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
             else
             {
-                Debug(_gameScreen).error("Invalid parameter for 'SummonUnit'. The first parameter must be either a String or an Array of Strings.", "Util");
+                debug.error("Invalid parameter for 'SummonUnit'. The first parameter must be either a String or an Array of Strings.", "Util");
             }
 
             switch(returnType)
@@ -185,7 +187,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
             else
             {
-                throw new Error(infType + " is not a registered level type.");
+                debug.error(infType + " is not a registered level type for 'setLeveltype()'.", "Util");
             }
             return;
         }
@@ -323,7 +325,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                     unit.setBuilding();
                     team.unitInfo[currentUnit].push((team.buildings["BankBuilding"]).type);
                     team.unitGroups[currentUnit] = [];
-                    this._gameScreen.game.unitFactory.returnUnit(currentUnit, unit);    
+                    this._gameScreen.game.unitFactory.returnUnit(currentUnit, unit);
                 }
             }
             else if(units is int)
@@ -339,12 +341,74 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                     unit.setBuilding();
                     team.unitInfo[currentUnit].push((team.buildings["BankBuilding"]).type);
                     team.unitGroups[currentUnit] = [];
-                    this._gameScreen.game.unitFactory.returnUnit(currentUnit, unit);    
+                    this._gameScreen.game.unitFactory.returnUnit(currentUnit, unit);
                 }
             }
             else
             {
-                throw new Error("The first paramater of util.registerUnit() must be a String or an Array of Strings.");
+                debug.error("The first paramater of util.registerUnit() must be a String or an Array of Strings.", "Util");
+            }
+        }
+
+        public function reinforcements(health:int, maxHealth:int, team:Team, info:* = null, fullHeal:Boolean = true, extra:Boolean = false) : void
+        {
+            if(team.statue.health <= health && team.statue.maxHealth != maxHealth && !extra)
+            {
+                if(info is Function)
+                {
+                    info();
+                }
+                else
+                {
+                    debug.error("Input for 4th paramater must be a Function. 'reinforcements()'", "Util");
+                }
+                
+                team.statue.health = fullHeal ? maxHealth : (team.statue.maxHealth / team.statue.health - 1) * maxHealth;
+                team.statue.maxHealth = maxHealth;
+                team.statue.healthBar.totalHealth = maxHealth;
+            }
+        }
+
+        public function modifyDefence(type:String, team:Team, info:Array = null) : void
+        {
+            type = type.toLowerCase();
+            type = type.split(" ").join("");
+
+            var defence:* = team.castleDefence;
+            var unit:Unit = null;
+            var i:int = 0;
+            switch(type)
+            {
+                case "add":
+                    unit = summonUnit(info[0], info[1], team, Unit);
+                    
+                    unit.flyingHeight = 390;
+                    unit.pz = -unit.flyingHeight;
+                    unit.py = _gameScreen.game.map.height / 2 * defence.units.length / _gameScreen.game.xml.xml.Order.Tech.castleArchers.num;
+                    unit.y = unit.py;
+                    unit.px = team.homeX + team.direction * 180 - team.direction * defence.units.length * 8;
+                    unit.x = unit.px;
+                    unit.isInteractable = false;
+                    unit.healthBar.visible = false;
+
+                    var hold:HoldCommand = new HoldCommand(_gameScreen.game);
+                    unit.ai.setCommand(_gameScreen.game,hold);
+                    defence.units.push(unit);
+                    break;
+                case "replace":
+
+                    break;
+                case "remove":
+                    while (i > (defense.units.length - info[0]))
+                    {
+                        unit = defence.units[i];
+                        if(_gameScreen.game.battlefield.contains(unit))
+                        {
+                            _gameScreen.game.battlefield.removeChild(unit);
+                        }
+                        i--;
+                    }
+                    break;
             }
         }
     }

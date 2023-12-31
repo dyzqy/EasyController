@@ -133,6 +133,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             {
                console.scrollV = console.maxScrollV;
             }
+            return;
          }
          else
          {

@@ -7,7 +7,7 @@ package com.brockw.stickwar.campaign.controllers
    public class CampaignTutorial extends CampaignController
    {
 
-      private var reinforced:bool;
+      private var reinforced:Boolean;
       
       private var msg:InGameMessage; // Ingame Message.
 
@@ -43,8 +43,9 @@ package com.brockw.stickwar.campaign.controllers
          function():void{
                // Add whatever you want to happend once the enemy statue reaches 250 health
                msg = cs.startMsg("Reinforcements have arrived!");
+               reinforced = true;
             }
-         )
+         , true, reinforced);
       }
    }
 }

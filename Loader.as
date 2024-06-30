@@ -12,7 +12,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
     {
         public static const version:String = "1.3.0";
 
-        public static const date:String = "15-06-2024";
+        public static const date:String = "30-06-2024";
 
         public static const developer:String = "dyzqy";
 
@@ -22,9 +22,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public var versionCheck:Boolean = false;
 
-        public var isBeta:Boolean = false;
+        public var isBeta:Boolean = true;
 
-        public var isDev:Boolean = true;
+        public var isDev:Boolean = false;
 
         private var description:TextField;
 

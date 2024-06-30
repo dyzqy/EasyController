@@ -87,9 +87,16 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
         }
 
-        public function follow(un:Unit) : void
+        public function follow(un:*) : void
         {
-            _gameScreen.game.targetScreenX = un.px - _gameScreen.game.map.screenWidth / 2;
+            if(un is Unit)
+            {
+                _gameScreen.game.targetScreenX = un.px - _gameScreen.game.map.screenWidth / 2;
+            }
+            else if(un is int || un is Number)
+            {
+                _gameScreen.game.targetScreenX = int(un);
+            }
         }
 
         public function infrontUnit(team:Team) : Unit

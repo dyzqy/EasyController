@@ -6,132 +6,150 @@ package com.brockw.stickwar.campaign.controllers.EasyController
     import flash.events.*;
     import flash.text.*;
     import flash.ui.*;
+    import flash.net.*;
 
     public class Debug
     {
-
+      // FIx no scrolling to end later, add new private class for commands
       private var _gameScreen:GameScreen;
 
       private var initilized:Boolean = false;
 
+      private var globaldebug:Boolean = false;
+
+      public static var instance:Debug;
+
       public var inputField:TextField;
 
-      public var stats:TextField;
+      public var statsField:TextField;
 
-      public var console:TextField;
+      public var consoletext:TextField;
 
       public var comment:String;
+
 
       public function Debug(gameScreen:GameScreen)
       {
          super();
          this._gameScreen = gameScreen;
+         Debug.instance = this;
          
-         this.stats = new TextField();
-         this.console = new TextField();
+         this.statsField = new TextField();
+         this.consoletext = new TextField();
       }
 
-      public function SimulateStats(fSize:Number = 12) : void
+      public function stats(fSize:Number = 12) : void
       {
          var textFormat:TextFormat = new TextFormat("Verdana",fSize,16777215);
-         stats.defaultTextFormat = textFormat;
-         stats.multiline = true;
-         stats.wordWrap = true;
-         stats.height = 225;
-         stats.width = 250;
+         statsField.defaultTextFormat = textFormat;
+         statsField.multiline = true;
+         statsField.wordWrap = true;
+         statsField.height = 225;
+         statsField.width = 250;
 
-         stats.antiAliasType = AntiAliasType.ADVANCED;
-         stats.embedFonts = true;
+         statsField.antiAliasType = AntiAliasType.ADVANCED;
+         statsField.embedFonts = true;
 
-         _gameScreen.userInterface.hud.addChild(stats);
-         stats.x = 10;
-         stats.y = 10;
+         _gameScreen.userInterface.hud.addChild(statsField);
+         statsField.x = 10;
+         statsField.y = 10;
          var dropShadowFilter:DropShadowFilter = new DropShadowFilter(4,45,0,1,0,0,1,3);
          var glowFilter:GlowFilter = new GlowFilter(4079166,1,0,0,10,1,false,false);
          glowFilter.blurX = 5;
          glowFilter.blurY = 5;
-         stats.filters = [glowFilter];
+         statsField.filters = [glowFilter];
       }
 
-      public function SimulateConsole(fSize:int = 14, coms:Boolean = true) : void
+      public function console(fSize:int = 14, coms:Boolean = true, _globaldebug:Boolean = false) : void
       {
          var textFormat:TextFormat = new TextFormat("Verdana", int(fSize), 16777215);
-         console.defaultTextFormat = textFormat;
-         console.multiline = true;
-         console.wordWrap = true;
-         console.height = 200;
-         console.width = 450;
-         //console.border = true;
-         //console.borderColor = 0xFFFFFF;
+         consoletext.defaultTextFormat = textFormat;
+         consoletext.multiline = true;
+         consoletext.wordWrap = true;
+         consoletext.height = 200;
+         consoletext.width = 450;
+         //consoletext.border = true;
+         //consoletext.borderColor = 0xFFFFFF;
 
-         console.antiAliasType = AntiAliasType.ADVANCED;
-         console.embedFonts = true;
+         consoletext.antiAliasType = AntiAliasType.ADVANCED;
+         consoletext.embedFonts = true;
          
          var background:Shape = new Shape();
          background.graphics.beginFill(0, 0.7);
-         background.graphics.drawRect(0, 0, console.width, console.height);
+         background.graphics.drawRect(0, 0, consoletext.width, consoletext.height);
          background.graphics.endFill();
 
          _gameScreen.userInterface.hud.addChild(background);
-         _gameScreen.userInterface.hud.addChild(console);
+         _gameScreen.userInterface.hud.addChild(consoletext);
          addComms(coms, int(fSize));
-         console.x = 10;
-         console.y = 10;
-         background.x = console.x;
-         background.y = console.y;
+         consoletext.x = 10;
+         consoletext.y = 10;
+         background.x = consoletext.x;
+         background.y = consoletext.y;
          this.initilized = true;
+         globaldebug = _globaldebug;
       }
       
-      public function Log(msg:String,  color:String = "#FFFFFF") : void
+      public function log(msg:String,  color:String = "#FFFFFF") : void
       {
-         if(initilized)
+         if(globaldebug)
+         {
+            gdlog("[" + CurrentTime() + "] " + msg);
+         }
+         else if(initilized)
          {
             var formattedMessage:String = "<font color='" + color + "'>" + "[" + CurrentTime() + "] " + msg + "</font>";
-            console.htmlText += formattedMessage + "\n";
+            consoletext.htmlText += formattedMessage + "\n";
 
-            var isAtBottom:Boolean = console.scrollV >= console.maxScrollV - console.height / console.textHeight;
-            if(isAtBottom)
+            if(consoletext.scrollV >= consoletext.maxScrollV - consoletext.height / consoletext.textHeight)
             {
-               console.scrollV = console.maxScrollV;
+               consoletext.scrollV = consoletext.maxScrollV;
             }
          }
       }
 
-      public function Clear(msg:Boolean = false, num:int = 0) : void
+      public function clear(msg:Boolean = false, num:int = 0) : void
       {
          if(initilized)
          {
             var addedMessage:String = msg ? "<font color='" + "#FFFFFF" + "'>" + "[" + CurrentTime() + "] " + "Cleared Console." + "</font>" : "";
-            console.htmlText = addedMessage;
+            consoletext.htmlText = addedMessage;
          }
       }
 
-      public function LogError(msg:String, cl:String = "") : void
+      public function logError(msg:String, cl:String = "") : void
       {
-         if(initilized)
+         if(globaldebug)
+         {
+            //gdlog("color 04");
+            gdlog("[" + CurrentTime() + ", " + cl + "] " + msg);
+         }
+         else if(initilized)
          {
             var formattedMessage:String = "<font color='#FF0000'>" + "[" + CurrentTime() + ", " + cl + "] " + msg + "</font>";
-            console.htmlText += formattedMessage + "\n";
+            consoletext.htmlText += formattedMessage + "\n";
 
-            var isAtBottom:Boolean = console.scrollV >= console.maxScrollV - console.height / console.textHeight;
-            if(isAtBottom)
+            if(consoletext.scrollV >= consoletext.maxScrollV - consoletext.height / consoletext.textHeight)
             {
-               console.scrollV = console.maxScrollV;
+               consoletext.scrollV = consoletext.maxScrollV;
             }
          }
       }
 
       public function error(msg:String, cl:String = "") : void
       {
-         if(initilized)
+         if(globaldebug)
+         {
+            gdlog("[" + CurrentTime() + ", " + cl + "] " + msg);
+         }
+         else if(initilized)
          {
             var formattedMessage:String = "<font color='#FF0000'>" + "[" + CurrentTime() + ", " + cl + "] " + msg + "</font>";
-            console.htmlText += formattedMessage + "\n";
+            consoletext.htmlText += formattedMessage + "\n";
 
-            var isAtBottom:Boolean = console.scrollV >= console.maxScrollV - console.height / console.textHeight;
-            if(isAtBottom)
+            if(consoletext.scrollV >= consoletext.maxScrollV - consoletext.height / consoletext.textHeight)
             {
-               console.scrollV = console.maxScrollV;
+               consoletext.scrollV = consoletext.maxScrollV;
             }
             return;
          }
@@ -143,7 +161,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
       public function Statistics(txt:String, txt2:String = "", txt3:String = "", txt4:String = "", txt5:String = "", txt6:String = "") : void
       {
-         stats.htmlText = txt + "\n" + txt2 + "\n" + txt3 + "\n" + txt4 + "\n" + txt5 + "\n" + txt6;
+         statsField.htmlText = txt + "\n" + txt2 + "\n" + txt3 + "\n" + txt4 + "\n" + txt5 + "\n" + txt6;
       }
 
       public function CurrentTime() : String
@@ -156,16 +174,39 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return formattedTime;
       }
 
+      private function gdlog(text:String) : void
+      {
+         Security.allowDomain("*");
+         Security.allowInsecureDomain("*");
+
+         var request:URLRequest = new URLRequest("http://localhost:6969/");
+         request.method = URLRequestMethod.POST;
+
+         var variables:URLVariables = new URLVariables();
+         variables.deez = text;
+         request.data = variables;
+
+         var loader:URLLoader = new URLLoader();
+         loader.load(request);
+
+         loader.addEventListener(Event.COMPLETE, function(event:Event):void{
+            // Response handling logic here
+         });
+         loader.addEventListener(IOErrorEvent.IO_ERROR, function(event:IOErrorEvent):void {
+            // Error handling logic here
+         });
+      }
+
       public function addComms(coms:Boolean = true, fSize:int = 14) : void
       {
          if(coms)
          {
             var bg:Shape = new Shape();
             bg.graphics.beginFill(0, 0.7);
-            bg.graphics.drawRect(0, 0, console.width, 20);
+            bg.graphics.drawRect(0, 0, consoletext.width, 20);
             bg.graphics.endFill();
 
-            bg.y = console.y + console.height + bg.height - 5;
+            bg.y = consoletext.y + consoletext.height + bg.height - 5;
             _gameScreen.userInterface.hud.addChild(bg);
 
             var textFormat:TextFormat = new TextFormat("Verdana", int(fSize), 16777215);
@@ -203,8 +244,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             switch(parts[0])
             {
                case "clear":
-                  console.htmlText = "";
-                  Log("> Cleared console", "#FFFF00");
+                  consoletext.htmlText = "";
+                  Log("> Cleared consoletext", "#FFFF00");
                   break;
                case "give":
                   var team:String = parts[1].toLowerCase();

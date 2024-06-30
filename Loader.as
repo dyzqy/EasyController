@@ -10,18 +10,21 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class Loader
     {
-        public static const version:String = "EC_1.2.2";
+        public static const version:String = "1.3.0";
 
-        public static const date:String = "31-12-2023";
+        public static const date:String = "15-06-2024";
 
         public static const developer:String = "dyzqy";
 
         public static const help:String = "AsePlayer, s07, RinasSam"; // in alphabetical order, not in help amount.
 
+        public static const link:String = "https://dyzqy.github.io/";
 
         public var versionCheck:Boolean = false;
 
         public var isBeta:Boolean = false;
+
+        public var isDev:Boolean = true;
 
         private var description:TextField;
 
@@ -35,42 +38,51 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public var oldVersion:Boolean;
 
+        public static var instance:Loader;
+
         public function Loader(gameScreen:GameScreen)
         {
             super();
+            Loader.instance = this;
             this.stringMap = new StringMap();
             this.draw = new Draw();
             this._gameScreen = gameScreen;
-            allowDomain("raw.githubusercontent.com");
+            Security.allowDomain("dyzqy.github.io");
+            Security.allowInsecureDomain("dyzqy.github.io");
+            Security.allowDomain("*");
+            Security.allowInsecureDomain("*");
             if(versionCheck && !isBeta)
             {
-                verifyVersion(version);
+                verifyVersion();
             }
         }
 
-        public function verifyVersion(currentVersion:String)
+        public function verifyVersion()
         {
-            allowDomain("raw.githubusercontent.com");
-            var request:URLRequest = new URLRequest("https://raw.githubusercontent.com/dyzqy/EasyController/main/Other/version.txt");
+            Security.allowDomain("dyzqy.github.io");
+            Security.allowInsecureDomain("dyzqy.github.io");
+            Security.allowDomain("*");
+            Security.allowInsecureDomain("*");
+            var request:URLRequest = new URLRequest(link + "other/EasyController/version.txt");
             var loader:URLLoader = new URLLoader();
             request.method = URLRequestMethod.GET;
             loader.dataFormat = URLLoaderDataFormat.TEXT;
             loader.addEventListener(Event.COMPLETE, completeHandler);
+            loader.addEventListener(IOErrorEvent.IO_ERROR, function(event:IOErrorEvent):void {
+                throw new Error("Version request error: " + event.text);
+            });
             loader.load(request);
         }
 
         function completeHandler(event:Event):void 
         {
             var loadedText:String = loader.data;
-            var prefix:String = "EC_";
-
-            if (loadedText.indexOf(prefix) == 0) 
-            {
-                var loadedVersion:String = loadedText.substr(prefix.length);
-                var currentVersion:String = version.substr(prefix.length);
-                loadedVersion = loadedVersion.replace(/\./g, "");
-                currentVersion = currentVersion.replace(/\./g, "");
-            }
+            var prefix:String = "";
+            var loadedVersion:String = loadedText;
+            var currentVersion:String = version;
+            loadedVersion = loadedVersion.replace(/\./g, "");
+            currentVersion = currentVersion.replace(/\./g, "");
+            throw new Erorr(loadedVersion + ", " + currentVersion)
 
             if(currentVersion == loadedVersion)
             {
@@ -118,6 +130,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         public function createStuff() : void
         {
             var container:Sprite = new Sprite();
+            container.x = 300;
+            container.y = 300;
             _gameScreen.addChild(container);
 
             var square:Shape = draw.createRectangle(400, 175, "#000000", 75);
@@ -131,14 +145,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             this.description = draw.createTextField(400, 35, 14, "#ffbb00");
             description.y = title.height + description.height;
             container.addChild(description);
-        }
-
-        public function allowDomain(site:String = "raw.githubusercontent.com") : void
-        {
-            Security.allowDomain(site);
-            /*Security.allowInsecureDomain(site);
-            Security.allowDomain("*");
-            Security.allowInsecureDomain("*");*/
         }
     }
 }

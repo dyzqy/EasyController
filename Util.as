@@ -10,28 +10,38 @@ package com.brockw.stickwar.campaign.controllers.EasyController
     import com.brockw.stickwar.engine.multiplayer.moves.*;
     import com.brockw.stickwar.engine.units.*;
     import flash.utils.*;
+    import flash.text.*;
+    import flash.display.*;
 
     public class Util
     {
-        private var registeredUnits;
+        private var registeredUnits:Array;
+
+        private var customUnits:*;
 
         private var _gameScreen:GameScreen;
 
         private var debug:Debug;
 
-        public function Util(gameScreen:GameScreen, debugCl:Debug = null)
+        public function Util(gameScreen:GameScreen)
         {
             super();
             this._gameScreen = gameScreen;
-            this.debug = debugCl;
+            this.debug = Debug.instance;
         }
 
-        public function summonUnit(u1:*, copies:int, teamSpawn:Team, returnType:Class = null, type:* = null) : *
+        public function summonUnit(u1:*, copies:int = 1, teamSpawn:Team = null, returnType:Class = null, type1:* = null, variable1:* = null) : *
         {
+            if(teamSpawn == null)
+            {
+                teamSpawn = _gameScreen.team;
+            }
             var i:int = 0;
             var unName:int = 0;
             var un:Unit = null;
             var units:Array = [];
+            var type:* = null;
+            var variable:* = null;
 
             if (u1 is Array)
             {
@@ -43,26 +53,22 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                         debug.error("Unit Name must be a String. SummonUnit().", "Util");
                         return;
                     }
+                    if(type1 is Array)
+                    {
+                        type = type1[j];
+                    }
+                    if(variable1 is Array)
+                    {
+                        variable = variable1[j];
+                    }
                     while(i < copies)
                     {
                         unName = StringMap.unitNameToType(u1[j]);
                         un = _gameScreen.game.unitFactory.getUnit(unName);
-                        /*if(type != null)
+                        if(type != null && variable != null)
                         {
-                            if (type is Array)
-                            {
-                                StringMap.setUnitType(un, type[j]);
-                            }
-                            else if (type is String)
-                            {
-                                StringMap.setUnitType(un, type);
-                            }
-                            else
-                            {
-                                debug.error("Invalid parameter for 'unitType'. The parameter must be either a String or an Array of Strings.", "Util");
-                            }
-                            
-                        }*/
+                            un[variable] = type;
+                        }
                         teamSpawn.spawn(un, _gameScreen.game);
                         teamSpawn.population += un.population;
 
@@ -77,8 +83,20 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             {
                 while (i < copies)
                 {
+                    if(type1 is String)
+                    {
+                        type = type1;
+                    }
+                    if(variable1 is String)
+                    {
+                        variable = variable1;
+                    }
                     unName = StringMap.unitNameToType(u1);
                     un = _gameScreen.game.unitFactory.getUnit(unName);
+                    if(type != null && variable != null)
+                    {
+                        un[variable] = type;
+                    }
                     teamSpawn.spawn(un, _gameScreen.game);
                     teamSpawn.population += un.population;
 
@@ -88,7 +106,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
             else
             {
-                debug.error("Invalid parameter for 'SummonUnit'. The first parameter must be either a String or an Array of Strings.", "Util");
+                debug.error("Invalid parameter for 'SummonUnit()'. The first parameter must be either a String or an Array of Strings.", "Util");
             }
 
             switch(returnType)
@@ -139,6 +157,23 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
         }
 
+        /*public function removeGoldmines(num:int = 8):void 
+        {
+            if (_gameScreen.game.map.gold.length >= num) 
+            {
+                for (var i:int = 0; i < num; i++) {
+                    var gold:Gold = _gameScreen.game.map.gold.pop();
+                    gold.alpha = 0;
+                    var index:int = _gameScreen.game.map.gold.indexOf(gold);
+                    delete _gameScreen.game.map.gold[gold];
+                    if (index != -1) 
+                    {
+                        _gameScreen.game.map.gold.splice(index, 1);
+                    }
+                }
+            }
+        }*/
+
         public function researchTech(tech:int, team:Team, outcome:Boolean = true) : void
         {
           team.tech.isResearchedMap[tech] = outcome;
@@ -157,20 +192,20 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             infType = infType.split(" ").join("");
             if(infType == "ambush")
             {
-                //_gameScreen.team.enemyTeam.statue.isDieing = true;
                 _gameScreen.team.enemyTeam.statue.isDead = true;
                 _gameScreen.team.enemyTeam.statue.px = statue.px - 1000;
                 _gameScreen.team.enemyTeam.statue.x = statue.x - 1000;
-                //_gameScreen.team.enemyTeam.statue.py = 250;
-                //_gameScreen.team.enemyTeam.statue.y = 250;
                 _gameScreen.team.enemyTeam.statue.alpha = 0;
+            }
+            else if(infType == "reverseambush")
+            {
+                _gameScreen.team.statue.isDead = true;
+                _gameScreen.team.statue.px = 0;
+                _gameScreen.team.statue.x = 0;
+                _gameScreen.team.statue.alpha = 0;
             }
             else if(infType == "seige")
             {
-                //_gameScreen.team.enemyTeam.statue.isDieing = true;
-                //_gameScreen.team.enemyTeam.statue.py = 250;
-                //_gameScreen.team.enemyTeam.statue.y = 250;
-
                 enemyStatue.isDead = true;
                 enemyStatue.px = statue.px - 1000;
                 enemyStatue.x = statue.x - 1000;
@@ -187,41 +222,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
             else
             {
-                debug.error(infType + " is not a registered level type for 'setLeveltype()'.", "Util");
+                debug.error(infType + " is not a registered level type for 'setLevelType()'.", "Util");
             }
-            return;
-        }
-
-        public function winCondition(type:String, time:int) : void
-        {
-            var statue:Statue = _gameScreen.team.statue;
-            type = type.toLowerCase();
-            type = type.split(" ").join("");
-            if(type == "time")
-            {
-                if(int(_gameScreen.game.frame / 30) == time)
-                {
-                  _gameScreen.team.enemyTeam.statue.px = statue.px;
-                  _gameScreen.team.enemyTeam.statue.x = statue.x;
-                  _gameScreen.enemyTeam.statue.kill();
-                }
-            }
-        }
-
-        public function challenge(type:String) : void
-        {
-            var clAmount:int = 0;
-            type = type.toLowerCase();
-            type = type.split(" ").join("");
-            if(type == "gold" || type == "gathergold")
-            {
-                var gold:int = _gameScreen.team.gold;
-                if(gold < _gameScreen.team.gold)
-                {
-                    clAmount += _gameScreen.team.gold - gold;
-                }
-            }
-            return;
         }
 
         public function hold(unit:Unit, x:Number = 0, y:Number = 0) : void
@@ -248,18 +250,42 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public function garrison(unit:Unit) : void
         {
-            var move:UnitMove = new UnitMove(); 
-            move.owner = unit.team.id; 
-            move.moveType = UnitCommand.GARRISON; 
-            move.arg0 = unit.px; 
-            move.arg1 = unit.py; 
-            move.units.push(unit.id); 
-            move.execute(_gameScreen.game);
+            unit.garrison();
         }
 
-        public function loop(sec:int, func:Function) : void
+        public function ungarrison(unit:Unit) : void
         {
-            if (_gameScreen.game.frame % (30 * sec) == 0)
+            unit.ungarrison();
+        }
+
+        private function isOdd(number:int) : Boolean 
+        {
+            return number % 2 != 0;
+        }
+
+        public function loop(sec:Number, func:Function) : void
+        {
+            var num:int = 0;
+            var frames:int = int(sec * 30);
+            var gameFrames:* = this._gameScreen.game.frame;
+
+            if(this._gameScreen.isFastForward)
+            {
+                if(isOdd(gameFrames) && isOdd(frames))
+                {
+                    num = 0;
+                }
+                else if(!isOdd(gameFrames) && !isOdd(frames))
+                {
+                    num = 0;
+                }
+                else
+                {
+                    num = 1;
+                }
+            }
+
+            if (gameFrames - num % frames == 0)
             {
                 func();
             }
@@ -267,25 +293,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public function king(un:Unit) : void
         {
-            if(un.isDead)
+            if(un.isDead || un.isDieing)
             {
                un.team.statue.kill();
-            }
-        }
-
-        public function revive(un:Unit, sec:int) : Unit
-        {
-            var unit:Unit = null;
-            
-            if(un.isDead)
-            {
-                var type:int = unit != null ? un.type : type;
-                var team:Team = unit != null ? un.team : team;
-                if(param1.game.frame % (30 * sec) == 0)
-                {
-                    unit = SummonUnit(StringMap.unitTypeToName(un.type), 1, un.team, Unit);
-                    return unit;
-                }
             }
         }
 
@@ -369,47 +379,192 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
         }
 
-        public function modifyDefence(type:String, team:Team, info:Array = null) : void
+        public function instaBuild(team:Team) : void
         {
-            type = type.toLowerCase();
-            type = type.split(" ").join("");
-
-            var defence:* = team.castleDefence;
-            var unit:Unit = null;
-            var i:int = 0;
-            switch(type)
+            var unit:* = null;
+            for each(unit in team.unitProductionQueue)
             {
-                case "add":
-                    unit = summonUnit(info[0], info[1], team, Unit);
-                    
-                    unit.flyingHeight = 390;
-                    unit.pz = -unit.flyingHeight;
-                    unit.py = _gameScreen.game.map.height / 2 * defence.units.length / _gameScreen.game.xml.xml.Order.Tech.castleArchers.num;
-                    unit.y = unit.py;
-                    unit.px = team.homeX + team.direction * 180 - team.direction * defence.units.length * 8;
-                    unit.x = unit.px;
-                    unit.isInteractable = false;
-                    unit.healthBar.visible = false;
-
-                    var hold:HoldCommand = new HoldCommand(_gameScreen.game);
-                    unit.ai.setCommand(_gameScreen.game,hold);
-                    defence.units.push(unit);
-                    break;
-                case "replace":
-
-                    break;
-                case "remove":
-                    while (i > (defense.units.length - info[0]))
-                    {
-                        unit = defence.units[i];
-                        if(_gameScreen.game.battlefield.contains(unit))
-                        {
-                            _gameScreen.game.battlefield.removeChild(unit);
-                        }
-                        i--;
-                    }
-                    break;
+                if(unit.length != 0)
+                {
+                    unit[0][1] = unit[0][0].createTime + 9;
+                }
             }
+        }
+
+        public function restoreHealth(type:*) : void
+        {
+            unitsreducedcode(type, function(un:Unit):void{
+                un.health = un.maxHealth;
+            });
+            
+        }
+
+        public function passiveHeal(type:*, amount:Number, extrateam:Team = null) : void
+        {
+            var un:* = null;
+            var realamount:Number = amount / 30;
+
+            unitsreducedcode(type, function(un:Unit):void{
+                if(un.health + realamount <= un.maxHealth)
+                {
+                    un.health += realamount;
+                }
+                else
+                {
+                    un.health += un.maxHealth - un.health;
+                }
+            }, extrateam);
+        }
+
+        /*public function passiveCure(type:*, timer:Number) : void
+        {
+            var un:* = null;
+            if(type is Team)
+            {
+                for each(un in type.units)
+                {
+                    loop(timer, function():void{
+                        un.cure();
+                    });
+                }
+            }
+            else if(type is Unit)
+            {
+                var un:Unit = type;
+                loop(timer, function():void{
+                    un.cure();
+                });
+            }
+        }*/
+        
+        public function swapUnitButton(units:*, team:Team) : void
+        {
+            if(!Loader.instance.isDev)
+            {
+                debug.error("The 'swapUnitButton()' function is still under work!", "Util")
+                return;
+            }
+
+            registerUnit(units[1], team);
+
+            var unit1:* = StringMap.unitNameToType(units[0]);
+            var unit2:* = StringMap.unitNameToType(units[1]);
+            registerUnit(unit1, team);
+
+            var currentXML:* = StringMap.unitTypeToXML(unit2, this._gameScreen.game);
+            
+            var unit:* = team.buttonInfoMap[unit1];
+            team.buttonInfoMap[unit2] = [unit[0],unit[1],currentXML,0,new cancelButton(),currentXML.cost * team.handicap,unit[6],unit[7],unit[8]];
+
+            delete team.buttonInfoMap[unit1];
+            team.unitsAvailable[unit2] = 1;
+        }
+
+        public function changeStatue(team:Team, statue:String) : void
+        {
+            statue = statue.toLowerCase();
+            team.statueType = statue;
+        }
+
+        public function changeMusic(name:String = "orderInGame") : void
+        {
+            _gameScreen.game.soundManager.playSoundInBackground(name);
+        }
+
+        public function disableFinishers(team:Team = null) : void
+        {
+            disableDFs(team);
+        }
+
+        public function disableDuels(team:Team = null) : void
+        {
+            disableDFs(team);
+        }
+
+        private function disableDFs(team:Team = null) : void
+        {
+            if(team == null)
+            {
+                _gameScreen.team.isMember = false;
+                _gameScreen.team.enemyTeam.isMember = false;
+            }
+            else if(!(team is Team))
+            {
+                debug.error("Paramater must be null or a Team. disableDuels()/disableFinishers().", "Util");
+            }
+            else
+            {
+                team.isMember = false;
+            }
+        }
+
+        // Private functions place :)
+
+        private function unitsreducedcode(type:*, func:Function, extrateam:Team = null) : void
+        {
+            var un:* = null;
+            var realamount:Number = amount / 30;
+            if(type is Team)
+            {
+                for each(un in type.units)
+                {
+                    func(un);
+                }
+            }
+            else if(type is Array)
+            {
+                if(type[0] is Unit)
+                {
+                    for each(un in type.units)
+                    {
+                        func(un);
+                    }
+                }
+                else if(type[0] is String)
+                {
+                    var unitGroup:Array = getUnitGroup(type, extrateam);
+                    for each(un in unitGroup)
+                    {
+                        func(un);
+                    }
+                }
+                else
+                {
+                    debug.error("No registered array type for {" + type + "} is available yet.", "Util");
+                }
+            }
+            else if(type is Unit)
+            {
+                func(type);
+            }
+            else if(type is String)
+            {
+                var unitGroup:Array = getUnitGroup(type, extrateam);
+                for each(un in unitGroup)
+                {
+                    func(un);
+                }
+            }
+            else
+            {
+                debug.error("{" + type + "} must be either a Team, Unit, String or an Array of Strings/Units.", "Util");
+            }
+        }
+
+        private function getUnitGroup(type:*, team:Team) : Array
+        {
+            var un:* = null;
+            var result:Array = [];
+
+            if(type is String)
+            {
+                var unitType:int = StringMap.unitNameToType(type);
+                for each(un in team.unitGroups[unitType])
+                {
+                    result.push(un);
+                }
+            }
+            return result;
         }
     }
 }

@@ -7,8 +7,6 @@ package com.brockw.stickwar.campaign.controllers
    {
       public var loader:Loader;
 
-      public var stringMap:StringMap;
-
       public var data:Data;
 
       public var debug:Debug;
@@ -18,6 +16,8 @@ package com.brockw.stickwar.campaign.controllers
       public var cs:CutScene;
 
       public var draw:Draw;
+
+      public var pp:ProjectilePlus;
       
       private var _gameScreen:GameScreen;
       
@@ -31,11 +31,11 @@ package com.brockw.stickwar.campaign.controllers
             this.loader = new Loader(gameScreen);
 
             this.draw = loader.draw;
-            this.stringMap = loader.stringMap;
             this.data = new Data(gameScreen);
             this.debug = new Debug(gameScreen);
-            this.util = new Util(gameScreen, this.debug);
+            this.util = new Util(gameScreen);
             this.cs = new CutScene(gameScreen);
+            this.pp = new ProjectilePlus(gameScreen,this.util);
          }
       }
       

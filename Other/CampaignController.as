@@ -7,8 +7,6 @@ package com.brockw.stickwar.campaign.controllers
    {
       public var loader:Loader;
 
-      public var stringMap:StringMap;
-
       public var data:Data;
 
       public var debug:Debug;
@@ -18,6 +16,8 @@ package com.brockw.stickwar.campaign.controllers
       public var cs:CutScene;
 
       public var draw:Draw;
+
+      public var pp:ProjectilePlus;
       
       private var _gameScreen:GameScreen;
       
@@ -31,11 +31,11 @@ package com.brockw.stickwar.campaign.controllers
             this.loader = new Loader(gameScreen);
 
             this.draw = loader.draw;
-            this.stringMap = loader.stringMap;
             this.data = new Data(gameScreen);
             this.debug = new Debug(gameScreen);
-            this.util = new Util(gameScreen, this.debug);
+            this.util = new Util(gameScreen);
             this.cs = new CutScene(gameScreen);
+            this.pp = new ProjectilePlus(gameScreen,this.util);
          }
       }
       
@@ -74,19 +74,19 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          this._gameScreen = gameScreen;
       }
 
-      public function timer() : Number
+      public function timer(type:String = "frames") : Number
       {
-         return this._gameScreen.game.frame / 30;
+         return this._gameScreen.game.frame;
       }
 
-      public function center(pos:String = "X") : Number
+      public function center(pos:String = "x") : Number
       {
-         pos = pos.toUpperCase();
-         if(pos == "X" || pos == "PX")
+         pos = pos.toLowerCase();
+         if(pos == "x" || pos == "px")
          {
             return this._gameScreen.game.map.width / 2;
          }
-         else if(pos == "Y" || pos == "PY")
+         else if(pos == "y" || pos == "py")
          {
             return this._gameScreen.game.map.height / 2;
          }
@@ -103,13 +103,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          {
             rUnit = this._gameScreen.game.unitFactory.getUnit(StringMap.unitNameToType(unitName));
             unitType = StringMap.unitNameToType(unitName);
-            for each(rUnit in team.units)
-            {
-               if(rUnit.isAlive() && unitType == rUnit.type)
-               {
-                  unitNum += 1;
-               }
-            }
+            unitNum = team.unitGroup[unitType].length;
          }
          else
          {
@@ -129,45 +123,44 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return state == currState;
       }
 
-      public function isTime(num:Number) : Boolean
+      public static function isOdd(number:int) : Boolean 
       {
-         return Number(this._gameScreen.game.frame / 30) == num;
+         return number % 2 != 0;
       }
 
-      public function unitData(un:Unit, infType:String) : *
+      public function isTime(num:Number, doafter:Boolean = false) : Boolean
       {
-         un = this._gameScreen.game.unitFactory.getUnit(un.type);
+         // Odd numbers are not devidable by 2
+         var frames:int = int(num * 30);
+         var gameFrames:* = this._gameScreen.game.frame;
+         var result:Boolean = gameFrames == frames;
 
-         infType = infType.toLowerCase();
-         infType = infType.split(" ").join("");
-         if(infType == "hp" || infType == "health")
+         if(doafter)
          {
-            return un.health;
+            return gameFrames > frames;
          }
-         else if(infType == "mhp" || infType == "maxhealth")
+         
+         if(this._gameScreen.isFastForward)
          {
-            return un.maxHealth;
+            if(isOdd(gameFrames) && isOdd(frames))
+            {
+               result = gameFrames == frames;
+            }
+            else if(!isOdd(gameFrames) && !isOdd(frames))
+            {
+               result = gameFrames == frames;
+            }
+            else
+            {
+               result = gameFrames - 1 == frames;
+            }
          }
-         else if(infType == "px" || infType == "x")
-         {
-            return un.px;
-         }
-         else if(infType == "py" || infType == "y")
-         {
-            return un.py;
-         }
-         else if(infType == "flyingheight" || infType == "fh"|| infType == "flyheight")
-         {
-            return un.flyingHeight;
-         }
-         else if(infType == "currenttarget" || infType == "currtarget" || infType == "target")
-         {
-            return un.ai.currentTarget;
-         }
-         return null;
+         
+
+         return result;
       }
 
-      public function statuePos(team:Team, pos:String = "x") : Number
+      public function statuePosition(team:Team, pos:String = "x") : Number
       {
          pos = pos.toUpperCase();
          if(pos == "X" || pos == "PX")
@@ -179,6 +172,11 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             return team.statue.py;
          }
          return 0;
+      }
+
+      public function statueType(team:Team) : String
+      {
+         return team.statueType;
       }
 
       public function homeX(team:Team) : Number
@@ -297,6 +295,11 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          }
          return null;
       }
+
+      public function random(min:Number, max:Number) : *
+      {
+         return min + Math.floor(Math.random() * (max - min + 1))
+      }
    }
 } 
 package com.brockw.stickwar.campaign.controllers.EasyController
@@ -307,132 +310,150 @@ package com.brockw.stickwar.campaign.controllers.EasyController
     import flash.events.*;
     import flash.text.*;
     import flash.ui.*;
+    import flash.net.*;
 
     public class Debug
     {
-
+      // FIx no scrolling to end later, add new private class for commands
       private var _gameScreen:GameScreen;
 
       private var initilized:Boolean = false;
 
+      private var globaldebug:Boolean = false;
+
+      public static var instance:Debug;
+
       public var inputField:TextField;
 
-      public var stats:TextField;
+      public var statsField:TextField;
 
-      public var console:TextField;
+      public var consoletext:TextField;
 
       public var comment:String;
+
 
       public function Debug(gameScreen:GameScreen)
       {
          super();
          this._gameScreen = gameScreen;
+         Debug.instance = this;
          
-         this.stats = new TextField();
-         this.console = new TextField();
+         this.statsField = new TextField();
+         this.consoletext = new TextField();
       }
 
-      public function SimulateStats(fSize:Number = 12) : void
+      public function stats(fSize:Number = 12) : void
       {
          var textFormat:TextFormat = new TextFormat("Verdana",fSize,16777215);
-         stats.defaultTextFormat = textFormat;
-         stats.multiline = true;
-         stats.wordWrap = true;
-         stats.height = 225;
-         stats.width = 250;
+         statsField.defaultTextFormat = textFormat;
+         statsField.multiline = true;
+         statsField.wordWrap = true;
+         statsField.height = 225;
+         statsField.width = 250;
 
-         stats.antiAliasType = AntiAliasType.ADVANCED;
-         stats.embedFonts = true;
+         statsField.antiAliasType = AntiAliasType.ADVANCED;
+         statsField.embedFonts = true;
 
-         _gameScreen.userInterface.hud.addChild(stats);
-         stats.x = 10;
-         stats.y = 10;
+         _gameScreen.userInterface.hud.addChild(statsField);
+         statsField.x = 10;
+         statsField.y = 10;
          var dropShadowFilter:DropShadowFilter = new DropShadowFilter(4,45,0,1,0,0,1,3);
          var glowFilter:GlowFilter = new GlowFilter(4079166,1,0,0,10,1,false,false);
          glowFilter.blurX = 5;
          glowFilter.blurY = 5;
-         stats.filters = [glowFilter];
+         statsField.filters = [glowFilter];
       }
 
-      public function SimulateConsole(fSize:int = 14, coms:Boolean = true) : void
+      public function console(fSize:int = 14, coms:Boolean = true, _globaldebug:Boolean = false) : void
       {
          var textFormat:TextFormat = new TextFormat("Verdana", int(fSize), 16777215);
-         console.defaultTextFormat = textFormat;
-         console.multiline = true;
-         console.wordWrap = true;
-         console.height = 200;
-         console.width = 450;
-         //console.border = true;
-         //console.borderColor = 0xFFFFFF;
+         consoletext.defaultTextFormat = textFormat;
+         consoletext.multiline = true;
+         consoletext.wordWrap = true;
+         consoletext.height = 200;
+         consoletext.width = 450;
+         //consoletext.border = true;
+         //consoletext.borderColor = 0xFFFFFF;
 
-         console.antiAliasType = AntiAliasType.ADVANCED;
-         console.embedFonts = true;
+         consoletext.antiAliasType = AntiAliasType.ADVANCED;
+         consoletext.embedFonts = true;
          
          var background:Shape = new Shape();
          background.graphics.beginFill(0, 0.7);
-         background.graphics.drawRect(0, 0, console.width, console.height);
+         background.graphics.drawRect(0, 0, consoletext.width, consoletext.height);
          background.graphics.endFill();
 
          _gameScreen.userInterface.hud.addChild(background);
-         _gameScreen.userInterface.hud.addChild(console);
+         _gameScreen.userInterface.hud.addChild(consoletext);
          addComms(coms, int(fSize));
-         console.x = 10;
-         console.y = 10;
-         background.x = console.x;
-         background.y = console.y;
+         consoletext.x = 10;
+         consoletext.y = 10;
+         background.x = consoletext.x;
+         background.y = consoletext.y;
          this.initilized = true;
+         globaldebug = _globaldebug;
       }
       
-      public function Log(msg:String,  color:String = "#FFFFFF") : void
+      public function log(msg:String,  color:String = "#FFFFFF") : void
       {
-         if(initilized)
+         if(globaldebug)
+         {
+            gdlog("[" + CurrentTime() + "] " + msg);
+         }
+         else if(initilized)
          {
             var formattedMessage:String = "<font color='" + color + "'>" + "[" + CurrentTime() + "] " + msg + "</font>";
-            console.htmlText += formattedMessage + "\n";
+            consoletext.htmlText += formattedMessage + "\n";
 
-            var isAtBottom:Boolean = console.scrollV >= console.maxScrollV - console.height / console.textHeight;
-            if(isAtBottom)
+            if(consoletext.scrollV >= consoletext.maxScrollV - consoletext.height / consoletext.textHeight)
             {
-               console.scrollV = console.maxScrollV;
+               consoletext.scrollV = consoletext.maxScrollV;
             }
          }
       }
 
-      public function Clear(msg:Boolean = false, num:int = 0) : void
+      public function clear(msg:Boolean = false, num:int = 0) : void
       {
          if(initilized)
          {
             var addedMessage:String = msg ? "<font color='" + "#FFFFFF" + "'>" + "[" + CurrentTime() + "] " + "Cleared Console." + "</font>" : "";
-            console.htmlText = addedMessage;
+            consoletext.htmlText = addedMessage;
          }
       }
 
-      public function LogError(msg:String, cl:String = "") : void
+      public function logError(msg:String, cl:String = "") : void
       {
-         if(initilized)
+         if(globaldebug)
+         {
+            //gdlog("color 04");
+            gdlog("[" + CurrentTime() + ", " + cl + "] " + msg);
+         }
+         else if(initilized)
          {
             var formattedMessage:String = "<font color='#FF0000'>" + "[" + CurrentTime() + ", " + cl + "] " + msg + "</font>";
-            console.htmlText += formattedMessage + "\n";
+            consoletext.htmlText += formattedMessage + "\n";
 
-            var isAtBottom:Boolean = console.scrollV >= console.maxScrollV - console.height / console.textHeight;
-            if(isAtBottom)
+            if(consoletext.scrollV >= consoletext.maxScrollV - consoletext.height / consoletext.textHeight)
             {
-               console.scrollV = console.maxScrollV;
+               consoletext.scrollV = consoletext.maxScrollV;
             }
          }
       }
 
       public function error(msg:String, cl:String = "") : void
       {
-         if(initilized)
+         if(globaldebug)
+         {
+            gdlog("[" + CurrentTime() + ", " + cl + "] " + msg);
+         }
+         else if(initilized)
          {
             var formattedMessage:String = "<font color='#FF0000'>" + "[" + CurrentTime() + ", " + cl + "] " + msg + "</font>";
-            console.htmlText += formattedMessage + "\n";
+            consoletext.htmlText += formattedMessage + "\n";
 
-            var isAtBottom:Boolean = console.scrollV >= console.maxScrollV - console.height / console.textHeight;
-            if(isAtBottom)
+            if(consoletext.scrollV >= consoletext.maxScrollV - consoletext.height / consoletext.textHeight)
             {
-               console.scrollV = console.maxScrollV;
+               consoletext.scrollV = consoletext.maxScrollV;
             }
             return;
          }
@@ -444,7 +465,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
       public function Statistics(txt:String, txt2:String = "", txt3:String = "", txt4:String = "", txt5:String = "", txt6:String = "") : void
       {
-         stats.htmlText = txt + "\n" + txt2 + "\n" + txt3 + "\n" + txt4 + "\n" + txt5 + "\n" + txt6;
+         statsField.htmlText = txt + "\n" + txt2 + "\n" + txt3 + "\n" + txt4 + "\n" + txt5 + "\n" + txt6;
       }
 
       public function CurrentTime() : String
@@ -457,16 +478,39 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return formattedTime;
       }
 
+      private function gdlog(text:String) : void
+      {
+         Security.allowDomain("*");
+         Security.allowInsecureDomain("*");
+
+         var request:URLRequest = new URLRequest("http://localhost:6969/");
+         request.method = URLRequestMethod.POST;
+
+         var variables:URLVariables = new URLVariables();
+         variables.deez = text;
+         request.data = variables;
+
+         var loader:URLLoader = new URLLoader();
+         loader.load(request);
+
+         loader.addEventListener(Event.COMPLETE, function(event:Event):void{
+            // Response handling logic here
+         });
+         loader.addEventListener(IOErrorEvent.IO_ERROR, function(event:IOErrorEvent):void {
+            // Error handling logic here
+         });
+      }
+
       public function addComms(coms:Boolean = true, fSize:int = 14) : void
       {
          if(coms)
          {
             var bg:Shape = new Shape();
             bg.graphics.beginFill(0, 0.7);
-            bg.graphics.drawRect(0, 0, console.width, 20);
+            bg.graphics.drawRect(0, 0, consoletext.width, 20);
             bg.graphics.endFill();
 
-            bg.y = console.y + console.height + bg.height - 5;
+            bg.y = consoletext.y + consoletext.height + bg.height - 5;
             _gameScreen.userInterface.hud.addChild(bg);
 
             var textFormat:TextFormat = new TextFormat("Verdana", int(fSize), 16777215);
@@ -504,8 +548,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             switch(parts[0])
             {
                case "clear":
-                  console.htmlText = "";
-                  Log("> Cleared console", "#FFFF00");
+                  consoletext.htmlText = "";
+                  Log("> Cleared consoletext", "#FFFF00");
                   break;
                case "give":
                   var team:String = parts[1].toLowerCase();
@@ -559,28 +603,38 @@ package com.brockw.stickwar.campaign.controllers.EasyController
     import com.brockw.stickwar.engine.multiplayer.moves.*;
     import com.brockw.stickwar.engine.units.*;
     import flash.utils.*;
+    import flash.text.*;
+    import flash.display.*;
 
     public class Util
     {
-        private var registeredUnits;
+        private var registeredUnits:Array;
+
+        private var customUnits:*;
 
         private var _gameScreen:GameScreen;
 
         private var debug:Debug;
 
-        public function Util(gameScreen:GameScreen, debugCl:Debug = null)
+        public function Util(gameScreen:GameScreen)
         {
             super();
             this._gameScreen = gameScreen;
-            this.debug = debugCl;
+            this.debug = Debug.instance;
         }
 
-        public function summonUnit(u1:*, copies:int, teamSpawn:Team, returnType:Class = null, type:* = null) : *
+        public function summonUnit(u1:*, copies:int = 1, teamSpawn:Team = null, returnType:Class = null, type1:* = null, variable1:* = null) : *
         {
+            if(teamSpawn == null)
+            {
+                teamSpawn = _gameScreen.team;
+            }
             var i:int = 0;
             var unName:int = 0;
             var un:Unit = null;
             var units:Array = [];
+            var type:* = null;
+            var variable:* = null;
 
             if (u1 is Array)
             {
@@ -592,26 +646,22 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                         debug.error("Unit Name must be a String. SummonUnit().", "Util");
                         return;
                     }
+                    if(type1 is Array)
+                    {
+                        type = type1[j];
+                    }
+                    if(variable1 is Array)
+                    {
+                        variable = variable1[j];
+                    }
                     while(i < copies)
                     {
                         unName = StringMap.unitNameToType(u1[j]);
                         un = _gameScreen.game.unitFactory.getUnit(unName);
-                        /*if(type != null)
+                        if(type != null && variable != null)
                         {
-                            if (type is Array)
-                            {
-                                StringMap.setUnitType(un, type[j]);
-                            }
-                            else if (type is String)
-                            {
-                                StringMap.setUnitType(un, type);
-                            }
-                            else
-                            {
-                                debug.error("Invalid parameter for 'unitType'. The parameter must be either a String or an Array of Strings.", "Util");
-                            }
-                            
-                        }*/
+                            un[variable] = type;
+                        }
                         teamSpawn.spawn(un, _gameScreen.game);
                         teamSpawn.population += un.population;
 
@@ -626,8 +676,20 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             {
                 while (i < copies)
                 {
+                    if(type1 is String)
+                    {
+                        type = type1;
+                    }
+                    if(variable1 is String)
+                    {
+                        variable = variable1;
+                    }
                     unName = StringMap.unitNameToType(u1);
                     un = _gameScreen.game.unitFactory.getUnit(unName);
+                    if(type != null && variable != null)
+                    {
+                        un[variable] = type;
+                    }
                     teamSpawn.spawn(un, _gameScreen.game);
                     teamSpawn.population += un.population;
 
@@ -637,7 +699,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
             else
             {
-                debug.error("Invalid parameter for 'SummonUnit'. The first parameter must be either a String or an Array of Strings.", "Util");
+                debug.error("Invalid parameter for 'SummonUnit()'. The first parameter must be either a String or an Array of Strings.", "Util");
             }
 
             switch(returnType)
@@ -688,6 +750,23 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
         }
 
+        /*public function removeGoldmines(num:int = 8):void 
+        {
+            if (_gameScreen.game.map.gold.length >= num) 
+            {
+                for (var i:int = 0; i < num; i++) {
+                    var gold:Gold = _gameScreen.game.map.gold.pop();
+                    gold.alpha = 0;
+                    var index:int = _gameScreen.game.map.gold.indexOf(gold);
+                    delete _gameScreen.game.map.gold[gold];
+                    if (index != -1) 
+                    {
+                        _gameScreen.game.map.gold.splice(index, 1);
+                    }
+                }
+            }
+        }*/
+
         public function researchTech(tech:int, team:Team, outcome:Boolean = true) : void
         {
           team.tech.isResearchedMap[tech] = outcome;
@@ -706,20 +785,20 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             infType = infType.split(" ").join("");
             if(infType == "ambush")
             {
-                //_gameScreen.team.enemyTeam.statue.isDieing = true;
                 _gameScreen.team.enemyTeam.statue.isDead = true;
                 _gameScreen.team.enemyTeam.statue.px = statue.px - 1000;
                 _gameScreen.team.enemyTeam.statue.x = statue.x - 1000;
-                //_gameScreen.team.enemyTeam.statue.py = 250;
-                //_gameScreen.team.enemyTeam.statue.y = 250;
                 _gameScreen.team.enemyTeam.statue.alpha = 0;
+            }
+            else if(infType == "reverseambush")
+            {
+                _gameScreen.team.statue.isDead = true;
+                _gameScreen.team.statue.px = 0;
+                _gameScreen.team.statue.x = 0;
+                _gameScreen.team.statue.alpha = 0;
             }
             else if(infType == "seige")
             {
-                //_gameScreen.team.enemyTeam.statue.isDieing = true;
-                //_gameScreen.team.enemyTeam.statue.py = 250;
-                //_gameScreen.team.enemyTeam.statue.y = 250;
-
                 enemyStatue.isDead = true;
                 enemyStatue.px = statue.px - 1000;
                 enemyStatue.x = statue.x - 1000;
@@ -736,41 +815,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
             else
             {
-                debug.error(infType + " is not a registered level type for 'setLeveltype()'.", "Util");
+                debug.error(infType + " is not a registered level type for 'setLevelType()'.", "Util");
             }
-            return;
-        }
-
-        public function winCondition(type:String, time:int) : void
-        {
-            var statue:Statue = _gameScreen.team.statue;
-            type = type.toLowerCase();
-            type = type.split(" ").join("");
-            if(type == "time")
-            {
-                if(int(_gameScreen.game.frame / 30) == time)
-                {
-                  _gameScreen.team.enemyTeam.statue.px = statue.px;
-                  _gameScreen.team.enemyTeam.statue.x = statue.x;
-                  _gameScreen.enemyTeam.statue.kill();
-                }
-            }
-        }
-
-        public function challenge(type:String) : void
-        {
-            var clAmount:int = 0;
-            type = type.toLowerCase();
-            type = type.split(" ").join("");
-            if(type == "gold" || type == "gathergold")
-            {
-                var gold:int = _gameScreen.team.gold;
-                if(gold < _gameScreen.team.gold)
-                {
-                    clAmount += _gameScreen.team.gold - gold;
-                }
-            }
-            return;
         }
 
         public function hold(unit:Unit, x:Number = 0, y:Number = 0) : void
@@ -797,18 +843,42 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public function garrison(unit:Unit) : void
         {
-            var move:UnitMove = new UnitMove(); 
-            move.owner = unit.team.id; 
-            move.moveType = UnitCommand.GARRISON; 
-            move.arg0 = unit.px; 
-            move.arg1 = unit.py; 
-            move.units.push(unit.id); 
-            move.execute(_gameScreen.game);
+            unit.garrison();
         }
 
-        public function loop(sec:int, func:Function) : void
+        public function ungarrison(unit:Unit) : void
         {
-            if (_gameScreen.game.frame % (30 * sec) == 0)
+            unit.ungarrison();
+        }
+
+        private function isOdd(number:int) : Boolean 
+        {
+            return number % 2 != 0;
+        }
+
+        public function loop(sec:Number, func:Function) : void
+        {
+            var num:int = 0;
+            var frames:int = int(sec * 30);
+            var gameFrames:* = this._gameScreen.game.frame;
+
+            if(this._gameScreen.isFastForward)
+            {
+                if(isOdd(gameFrames) && isOdd(frames))
+                {
+                    num = 0;
+                }
+                else if(!isOdd(gameFrames) && !isOdd(frames))
+                {
+                    num = 0;
+                }
+                else
+                {
+                    num = 1;
+                }
+            }
+
+            if (gameFrames - num % frames == 0)
             {
                 func();
             }
@@ -816,25 +886,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public function king(un:Unit) : void
         {
-            if(un.isDead)
+            if(un.isDead || un.isDieing)
             {
                un.team.statue.kill();
-            }
-        }
-
-        public function revive(un:Unit, sec:int) : Unit
-        {
-            var unit:Unit = null;
-            
-            if(un.isDead)
-            {
-                var type:int = unit != null ? un.type : type;
-                var team:Team = unit != null ? un.team : team;
-                if(param1.game.frame % (30 * sec) == 0)
-                {
-                    unit = SummonUnit(StringMap.unitTypeToName(un.type), 1, un.team, Unit);
-                    return unit;
-                }
             }
         }
 
@@ -918,47 +972,472 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
         }
 
-        public function modifyDefence(type:String, team:Team, info:Array = null) : void
+        public function instaBuild(team:Team) : void
         {
-            type = type.toLowerCase();
-            type = type.split(" ").join("");
-
-            var defence:* = team.castleDefence;
-            var unit:Unit = null;
-            var i:int = 0;
-            switch(type)
+            var unit:* = null;
+            for each(unit in team.unitProductionQueue)
             {
-                case "add":
-                    unit = summonUnit(info[0], info[1], team, Unit);
-                    
-                    unit.flyingHeight = 390;
-                    unit.pz = -unit.flyingHeight;
-                    unit.py = _gameScreen.game.map.height / 2 * defence.units.length / _gameScreen.game.xml.xml.Order.Tech.castleArchers.num;
-                    unit.y = unit.py;
-                    unit.px = team.homeX + team.direction * 180 - team.direction * defence.units.length * 8;
-                    unit.x = unit.px;
-                    unit.isInteractable = false;
-                    unit.healthBar.visible = false;
-
-                    var hold:HoldCommand = new HoldCommand(_gameScreen.game);
-                    unit.ai.setCommand(_gameScreen.game,hold);
-                    defence.units.push(unit);
-                    break;
-                case "replace":
-
-                    break;
-                case "remove":
-                    while (i > (defense.units.length - info[0]))
-                    {
-                        unit = defence.units[i];
-                        if(_gameScreen.game.battlefield.contains(unit))
-                        {
-                            _gameScreen.game.battlefield.removeChild(unit);
-                        }
-                        i--;
-                    }
-                    break;
+                if(unit.length != 0)
+                {
+                    unit[0][1] = unit[0][0].createTime + 9;
+                }
             }
+        }
+
+        public function restoreHealth(type:*) : void
+        {
+            unitsreducedcode(type, function(un:Unit):void{
+                un.health = un.maxHealth;
+            });
+            
+        }
+
+        public function passiveHeal(type:*, amount:Number, extrateam:Team = null) : void
+        {
+            var un:* = null;
+            var realamount:Number = amount / 30;
+
+            unitsreducedcode(type, function(un:Unit):void{
+                if(un.health + realamount <= un.maxHealth)
+                {
+                    un.health += realamount;
+                }
+                else
+                {
+                    un.health += un.maxHealth - un.health;
+                }
+            }, extrateam);
+        }
+
+        /*public function passiveCure(type:*, timer:Number) : void
+        {
+            var un:* = null;
+            if(type is Team)
+            {
+                for each(un in type.units)
+                {
+                    loop(timer, function():void{
+                        un.cure();
+                    });
+                }
+            }
+            else if(type is Unit)
+            {
+                var un:Unit = type;
+                loop(timer, function():void{
+                    un.cure();
+                });
+            }
+        }*/
+        
+        public function swapUnitButton(units:*, team:Team) : void
+        {
+            if(!Loader.instance.isDev)
+            {
+                debug.error("The 'swapUnitButton()' function is still under work!", "Util")
+                return;
+            }
+
+            registerUnit(units[1], team);
+
+            var unit1:* = StringMap.unitNameToType(units[0]);
+            var unit2:* = StringMap.unitNameToType(units[1]);
+            registerUnit(unit1, team);
+
+            var currentXML:* = StringMap.unitTypeToXML(unit2, this._gameScreen.game);
+            
+            var unit:* = team.buttonInfoMap[unit1];
+            team.buttonInfoMap[unit2] = [unit[0],unit[1],currentXML,0,new cancelButton(),currentXML.cost * team.handicap,unit[6],unit[7],unit[8]];
+
+            delete team.buttonInfoMap[unit1];
+            team.unitsAvailable[unit2] = 1;
+        }
+
+        public function changeStatue(team:Team, statue:String) : void
+        {
+            statue = statue.toLowerCase();
+            team.statueType = statue;
+        }
+
+        public function changeMusic(name:String = "orderInGame") : void
+        {
+            _gameScreen.game.soundManager.playSoundInBackground(name);
+        }
+
+        public function disableFinishers(team:Team = null) : void
+        {
+            disableDFs(team);
+        }
+
+        public function disableDuels(team:Team = null) : void
+        {
+            disableDFs(team);
+        }
+
+        private function disableDFs(team:Team = null) : void
+        {
+            if(team == null)
+            {
+                _gameScreen.team.isMember = false;
+                _gameScreen.team.enemyTeam.isMember = false;
+            }
+            else if(!(team is Team))
+            {
+                debug.error("Paramater must be null or a Team. disableDuels()/disableFinishers().", "Util");
+            }
+            else
+            {
+                team.isMember = false;
+            }
+        }
+
+        // Private functions place :)
+
+        private function unitsreducedcode(type:*, func:Function, extrateam:Team = null) : void
+        {
+            var un:* = null;
+            var realamount:Number = amount / 30;
+            if(type is Team)
+            {
+                for each(un in type.units)
+                {
+                    func(un);
+                }
+            }
+            else if(type is Array)
+            {
+                if(type[0] is Unit)
+                {
+                    for each(un in type.units)
+                    {
+                        func(un);
+                    }
+                }
+                else if(type[0] is String)
+                {
+                    var unitGroup:Array = getUnitGroup(type, extrateam);
+                    for each(un in unitGroup)
+                    {
+                        func(un);
+                    }
+                }
+                else
+                {
+                    debug.error("No registered array type for {" + type + "} is available yet.", "Util");
+                }
+            }
+            else if(type is Unit)
+            {
+                func(type);
+            }
+            else if(type is String)
+            {
+                var unitGroup:Array = getUnitGroup(type, extrateam);
+                for each(un in unitGroup)
+                {
+                    func(un);
+                }
+            }
+            else
+            {
+                debug.error("{" + type + "} must be either a Team, Unit, String or an Array of Strings/Units.", "Util");
+            }
+        }
+
+        private function getUnitGroup(type:*, team:Team) : Array
+        {
+            var un:* = null;
+            var result:Array = [];
+
+            if(type is String)
+            {
+                var unitType:int = StringMap.unitNameToType(type);
+                for each(un in team.unitGroups[unitType])
+                {
+                    result.push(un);
+                }
+            }
+            return result;
+        }
+    }
+} 
+package com.brockw.stickwar.campaign.controllers.EasyController
+{
+    import com.brockw.stickwar.GameScreen;
+    import com.brockw.stickwar.engine.Team.*;
+    import com.brockw.stickwar.engine.projectile.*;
+    import com.brockw.stickwar.engine.units.*;
+    import flash.utils.*;
+
+    public class ProjectilePlus
+    {
+        private var gameScreen:GameScreen;
+
+        private var util:Util;
+
+        // All arrays
+
+        private var firewalls:Array = [];
+
+        private var eletowers:Array = [];
+
+        private var mines:Array = [];
+
+        private var triggers:Array = [];
+
+        // private var sandstorm:Array = []:
+
+        // privare var thorn:Array = [];
+
+        public function ProjectilePlus(gs:GameScreen, utilities:Util)
+        {
+            this.gameScreen = gs;
+            this.util = utilities;
+            super();
+        }
+
+        public function firewall(px:*, team:Team, size:int, num:int, fireFrames:int = 60, fireDamage:Number = 1, radius:int = 15) : void
+        {
+            var i:int = 0;
+            var fires:Array = [];
+            while(i < num)
+            {
+                gameScreen.game.projectileManager.initFireOnTheGround(px,i * team.game.map.height / num,0,team,team.direction,size);
+                fires.push(getProjectile()); // add to array, but won't use it for now 
+                i++;
+            }
+            var firewallinf:Array = [px,team,radius,team.game.frame,fireFrames,fireDamage,fires];
+            firewalls.push(firewallinf);
+        }
+
+        public function teslatower(px:*, py:*, team:Team, range:int = 300, lifeFrames:int = 1200, frequency:int = 3) : void
+        {
+            team.game.projectileManager.initSandstormTower(px,py,0,team,team.direction,lifeFrames);
+            var sandstorminf:Array = [px,py,team,range,lifeFrames,team.game.frame,frequency,null,new Dictionary()];
+            eletowers.push(sandstorminf);
+        }
+
+        public function landmine(px:Number, py:Number, team:Team, size:Number = 0.25, damage:Number = 50, fireFrames:int = 60, fireDamage:Number = 1) : void
+        {
+            team.game.projectileManager.initMound(px,py,0,team,team.direction);
+            var mound:MoundOfDirt = MoundOfDirt(getProjectile());
+            var minesinf:Array = [px,py,team,mound,size];
+            mound.scaleX *= size;
+            mound.scaleY *= size;
+            mines.push(minesinf);
+        }
+
+        public function trigger(px:Number, py:Number, team:Team, width:Number, height:Number, func:Function) : void
+        {
+            var info:Array = [px, py, team, width, height, func];
+            triggers.push(info);
+        }
+
+        // Update Stuff, you only need to run updateProjectiles :thumbsup:
+
+        public function updateProjectiles() : void
+        {
+            updateFireWalls(gameScreen);
+            updateEleTowers(gameScreen);
+            updateMines(gameScreen);
+            // add trigger
+        }
+
+        private function updateFireWalls(gs:GameScreen)
+        {
+            //[px,team,radius,team.game.frame,fireFrames,fireDamage,fires]
+            if(firewalls.length == 0)
+            {
+                return;
+            }
+            var i:int = 0;
+            while(i < firewalls.length)
+            {
+                var j:int = 0;
+                var firewall:Object = firewallobj(firewalls[i]);
+
+                var fires:Array = firewall.fires;
+                var radius:int = firewall.radius;
+                //break;
+
+                if(fires.length == 0)
+                {
+                    firewalls.splice(firewalls.indexOf(firewalls[i]),1);
+                    i--;
+                    break;
+                }
+                
+                gs.game.spatialHash.mapInArea(firewall.px - radius, 0, firewall.px + radius, gs.game.map.height, function(param1:Unit):*
+                {
+                    if(param1.team != firewall.team && param1.pz == 0)
+                    {
+                        if(Math.abs(param1.px - firewall.px) < radius)
+                        {
+                            param1.setFire(firewall.fireFrames,firewall.fireDamage);
+                        }
+                    }
+                });
+            }
+        }
+
+        private function updateEleTowers(gs:GameScreen)
+        {
+            if(eletowers.length == 0)
+            {
+                return;
+            }
+            var i:int = 0;
+            while(i < eletowers.length)
+            {
+                var targetUnit:Unit = eletowers[i][7]
+                var unitsInArea:Dictionary = eletowers[i][8];
+                if(eletowers[i][4] > gs.game.frame - eletowers[i][5])
+                {
+                    gs.game.spatialHash.mapInArea(eletowers[i][0] - eletowers[i][3],0,eletowers[i][0] + eletowers[i][3],gs.game.map.height,function(param1:Unit):void
+                    {
+                        var sandstormRange:int = int(eletowers[i][3]);
+                        var frequency:int = 30 * eletowers[i][6];
+                        if(param1.team != eletowers[i][2] && param1.pz == 0)
+                        {
+                            if(Math.abs(param1.px - eletowers[i][0]) < sandstormRange)
+                            {
+                                if(targetUnit == null || targetUnit.isDead || targetUnit.isDieing)
+                                {
+                                    targetUnit = param1;
+                                }
+                                if(unitsInArea == null)
+                                {
+                                    unitsInArea = new Dictionary();
+                                }
+                                if(unitsInArea[param1] == null)
+                                {
+                                    unitsInArea[param1] = param1.team.game.frame;
+                                }
+                                if((param1.team.game.frame - unitsInArea[param1]) % frequency == 0 && param1 == targetUnit)
+                                {
+                                    param1.damage(Unit.D_NO_SOUND,50,null);
+                                    param1.team.game.projectileManager.initLightning(air,param1,0);
+                                }
+                            }
+                            else if(Math.abs(param1.px - eletowers[i][0]) > sandstormRange)
+                            {
+                                if(unitsInArea != null && unitsInArea[param1] != null)
+                                {
+                                    unitsInArea[param1] = null;
+                                    targetUnit = null;
+                                }
+                            }
+                        }
+                    });
+                    i++;
+                }
+                else
+                {
+                    eletowers.splice(eletowers.indexOf(eletowers[i]),1);
+                    i--;
+                }
+            }
+        }
+
+        private function updateMines(gs:GameScreen) : void
+        {
+            if(mines.length == 0)
+            {
+                return;
+            }
+            var i:int = 0;
+            while(i < mines.length)
+            {
+                var mine:Object = mineobj(mines[i]);
+                var team:Team = mine.team;
+                if(mine.mound.isReadyForCleanup() || mine.mound == null)
+                {
+                    gs.game.projectileManager.initMound(mine.px,mine.py,0,mine.team,mine.direction);
+                    team = mine.team;
+                    var mound:MoundOfDirt = MoundOfDirt(getProjectile());
+                    mound.scaleX *= mine.size;
+                    mound.scaleY *= mine.size;
+                    mines[i][3] = mound;
+                    mine.mound = mound;
+                }
+                var radius:Number = mine.size * 6.5;
+                gs.game.spatialHash.mapInArea(mine.px - radius,mine.py - radius,mine.px + radius,mine.py + radius,function(param1:Unit):void
+                {
+                    if(param1.team != mine.team && param1.pz == 0)
+                    {
+                        // debug.Log("Moving the ash is future dyz\'s problem lmaoo","#ff4040");
+                        gs.game.projectileManager.initNuke(mine.px,mine.py,param1.team.enemyTeam.statue,50,0.5,30 * 3);
+                        var nuke:Nuke = Nuke(getProjectile(5));
+                        var j:int = 0;
+                        while(j < 5)
+                        {
+                            var fire:FireOnTheGround = FireOnTheGround(getProjectile(j));
+                            var px:* = nuke.px - fire.px;
+                            var py:* = nuke.py - fire.py;
+                            fire.px = mine.px + px;
+                            fire.py = mine.py + py;
+                            j++;
+                        }
+                        nuke.px = mine[0];
+                        nuke.py = mine[1];
+                        nuke.x = nuke.px;
+                        nuke.y = nuke.py;
+                        mines.splice(mines.indexOf(mines[i]),1);
+                        removeProjectile(mine.mound);
+                    }
+                });
+                i++;
+            }
+        }
+
+        // useful functions that lessen work :)
+
+        private function mineobj(info:Array) : Object
+        {
+            var obj:Object = {
+                px: info[0],
+                py: info[1],
+                team: info[2],
+                direction: info[2].direction,
+                mound: info[3],
+                size: info[4]
+            };
+            return obj;
+        }
+
+        private function firewallobj(info:Array) : Object
+        {
+            var obj:Object = {
+                px: info[0],
+                team: info[1],
+                radius: info[2],
+                frame: info[3],
+                fireFrames: info[4],
+                fireDamage: info[5],
+                fires: info[6]
+            };
+            return obj;
+        }
+
+        private function getProjectile(num:int = 0) : *
+        {
+            if(gameScreen.game.projectileManager.projectiles.length == 0)
+            {
+                Debug.instance.error("No available projectiles to obtain. getProjectile()","ProjectilePlus");
+                return null;
+            }
+            var length:int = int(gameScreen.game.projectileManager.projectiles.length);
+            return gameScreen.game.projectileManager.projectiles[length - (1 + num)];
+        }
+
+        private function removeProjectile(projectile:Projectile) : void
+        {
+            gameScreen.game.projectileManager.projectileMap[projectile.type].returnItem(projectile);
+            if(gameScreen.game.battlefield.contains(projectile))
+            {
+                gameScreen.game.battlefield.removeChild(projectile);
+            }
+            gameScreen.game.projectileManager.projectiles.splice(gameScreen.game.projectileManager.projectiles.indexOf(projectile),1);
         }
     }
 } 
@@ -1051,9 +1530,16 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
         }
 
-        public function follow(un:Unit) : void
+        public function follow(un:*) : void
         {
-            _gameScreen.game.targetScreenX = un.px - _gameScreen.game.map.screenWidth / 2;
+            if(un is Unit)
+            {
+                _gameScreen.game.targetScreenX = un.px - _gameScreen.game.map.screenWidth / 2;
+            }
+            else if(un is int || un is Number)
+            {
+                _gameScreen.game.targetScreenX = int(un);
+            }
         }
 
         public function infrontUnit(team:Team) : Unit
@@ -1178,7 +1664,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             super();
         }
 
-        public function createTextField(width:Number, height:Number, fontSize:int, color:uint) : TextField 
+        public static function createTextField(width:Number, height:Number, fontSize:int, color:uint) : TextField 
         {
             var textField:TextField = new TextField();
             
@@ -1196,7 +1682,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             return textField;
         }
         
-        public function createRectangle(width:Number, height:Number, color:String, transparency:Number) : Shape 
+        public static function createRectangle(width:Number, height:Number, color:String, transparency:Number) : Shape 
         {
             var rectangle:Shape = new Shape();
             
@@ -1207,7 +1693,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             return rectangle;
         }
 
-        public function hexToDecimal(hexColor:String) : uint
+        public static function hexToDecimal(hexColor:String) : uint
         {
             hexColor = hexColor.replace("#", "");
             var red:uint = uint("0x" + hexColor.substr(0, 2));
@@ -1353,6 +1839,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          {
             return Unit.U_MINER_ELEMENT;
          }
+         Debug.instance.error("No match for " + param1, "StringMap")
          return -1;
       }
       
@@ -1723,18 +2210,21 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class Loader
     {
-        public static const version:String = "EC_1.2.2";
+        public static const version:String = "1.3.0";
 
-        public static const date:String = "31-12-2023";
+        public static const date:String = "15-06-2024";
 
         public static const developer:String = "dyzqy";
 
         public static const help:String = "AsePlayer, s07, RinasSam"; // in alphabetical order, not in help amount.
 
+        public static const link:String = "https://dyzqy.github.io/";
 
         public var versionCheck:Boolean = false;
 
         public var isBeta:Boolean = false;
+
+        public var isDev:Boolean = true;
 
         private var description:TextField;
 
@@ -1748,42 +2238,51 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public var oldVersion:Boolean;
 
+        public static var instance:Loader;
+
         public function Loader(gameScreen:GameScreen)
         {
             super();
+            Loader.instance = this;
             this.stringMap = new StringMap();
             this.draw = new Draw();
             this._gameScreen = gameScreen;
-            allowDomain("raw.githubusercontent.com");
+            Security.allowDomain("dyzqy.github.io");
+            Security.allowInsecureDomain("dyzqy.github.io");
+            Security.allowDomain("*");
+            Security.allowInsecureDomain("*");
             if(versionCheck && !isBeta)
             {
-                verifyVersion(version);
+                verifyVersion();
             }
         }
 
-        public function verifyVersion(currentVersion:String)
+        public function verifyVersion()
         {
-            allowDomain("raw.githubusercontent.com");
-            var request:URLRequest = new URLRequest("https://raw.githubusercontent.com/dyzqy/EasyController/main/Other/version.txt");
+            Security.allowDomain("dyzqy.github.io");
+            Security.allowInsecureDomain("dyzqy.github.io");
+            Security.allowDomain("*");
+            Security.allowInsecureDomain("*");
+            var request:URLRequest = new URLRequest(link + "other/EasyController/version.txt");
             var loader:URLLoader = new URLLoader();
             request.method = URLRequestMethod.GET;
             loader.dataFormat = URLLoaderDataFormat.TEXT;
             loader.addEventListener(Event.COMPLETE, completeHandler);
+            loader.addEventListener(IOErrorEvent.IO_ERROR, function(event:IOErrorEvent):void {
+                throw new Error("Version request error: " + event.text);
+            });
             loader.load(request);
         }
 
         function completeHandler(event:Event):void 
         {
             var loadedText:String = loader.data;
-            var prefix:String = "EC_";
-
-            if (loadedText.indexOf(prefix) == 0) 
-            {
-                var loadedVersion:String = loadedText.substr(prefix.length);
-                var currentVersion:String = version.substr(prefix.length);
-                loadedVersion = loadedVersion.replace(/\./g, "");
-                currentVersion = currentVersion.replace(/\./g, "");
-            }
+            var prefix:String = "";
+            var loadedVersion:String = loadedText;
+            var currentVersion:String = version;
+            loadedVersion = loadedVersion.replace(/\./g, "");
+            currentVersion = currentVersion.replace(/\./g, "");
+            throw new Erorr(loadedVersion + ", " + currentVersion)
 
             if(currentVersion == loadedVersion)
             {
@@ -1831,6 +2330,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         public function createStuff() : void
         {
             var container:Sprite = new Sprite();
+            container.x = 300;
+            container.y = 300;
             _gameScreen.addChild(container);
 
             var square:Shape = draw.createRectangle(400, 175, "#000000", 75);
@@ -1844,14 +2345,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             this.description = draw.createTextField(400, 35, 14, "#ffbb00");
             description.y = title.height + description.height;
             container.addChild(description);
-        }
-
-        public function allowDomain(site:String = "raw.githubusercontent.com") : void
-        {
-            Security.allowDomain(site);
-            /*Security.allowInsecureDomain(site);
-            Security.allowDomain("*");
-            Security.allowInsecureDomain("*");*/
         }
     }
 } 

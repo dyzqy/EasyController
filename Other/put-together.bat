@@ -5,7 +5,7 @@ set inputfolder=D:\Portable\Projects\Jpexs\EasyController
 set inputinstaller=%inputfolder%\EasyController_Installer\scripts\com\brockw\stickwar\campaign\controllers
 set outputfile=%inputfolder%\Other\CampaignController.as
 set outputinstaller=%inputinstaller%\CampaignController.as
-set filelist=CampaignController.as Data.as Debug.as Util.as CutScene.as Draw.as StringMap.as Loader.as
+set filelist=CampaignController.as Data.as Debug.as Util.as ProjectilePlus.as CutScene.as Draw.as StringMap.as Loader.as
 
 type nul > %outputfile%
 

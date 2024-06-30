@@ -34,7 +34,7 @@ package com.brockw.stickwar.campaign.controllers
                state++;
                for each(var un:Unit in param1.team.units)
                {
-                  un.px = data.center("x") + 50;
+                  un.px = data.center("x") + 250;
                   if(un is Miner)
                   {
                      un.kill();
@@ -42,7 +42,7 @@ package com.brockw.stickwar.campaign.controllers
                }
                for each(var un:Unit in param1.team.enemyTeam.units)
                {
-                  un.px = data.center("x") + 400;
+                  un.px = data.center("x") + data.random(0,400);
                   if(un is Miner)
                   {
                      un.kill();
@@ -63,7 +63,7 @@ package com.brockw.stickwar.campaign.controllers
                }
                if (!msg)
                {
-                  debug.SimulateConsole(12,false);
+                  debug.console(12,false);
                   msg = cs.startMsg("How did you even make such noise for all these deads to follow us???", "-Swordwrath");
                }
                else if (!param1.contains(msg))
@@ -119,7 +119,7 @@ package com.brockw.stickwar.campaign.controllers
                      un.px = data.homeX(param1.team) - 400;
                      util.garrison(un);
                   }
-                  debug.Log("Added +1 to 'state'");
+                  debug.log("Added +1 to 'state'");
                   state++;
                }
                break;

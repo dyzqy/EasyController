@@ -7,7 +7,7 @@ package com.brockw.stickwar.campaign.controllers
    public class CampaignTutorial extends CampaignController
    {
 
-      private var eGiant:EnslavedGiant; // Variable of "Enslaved Giant" unit.
+      private var reinforced:bool;
       
       private var msg:InGameMessage; // Ingame Message.
 
@@ -20,14 +20,9 @@ package com.brockw.stickwar.campaign.controllers
 
       public function start(param1:GameScreen) : void
       {
-         debug.SimulateConsole(12,false); // Create debugging console
-         // Summons 10 swordwraths, 3 speartons for your team & 10 speartons for enemy.
-         util.summonUnit("sword", 3, param1.team); 
-         util.summonUnit("spear", 5, param1.team);
-         util.summonUnit("spear", 10, param1.team.enemyTeam);
-         this.eGiant = util.summonUnit("egiant", 1, param1.team, Unit); // Summons a unit using a variable for later use
-         debug.Log("Starting units summoned.");
-         msg = cs.startMsg("Starting Message Template.", "Template"); // Starting message
+         // Summons 3 swordwraths for your team.
+         util.summonUnit("swordwrath", 3, param1.team); 
+         msg = cs.startMsg("Starting Message Template.", ""); // Starting message
       }
       
       override public function update(param1:GameScreen) : void
@@ -39,13 +34,17 @@ package com.brockw.stickwar.campaign.controllers
          }
          cs.message(msg,8); // Message update. Essential for displaying any message.
          
-         if(data.isTime(60)) // Once it has passed 1 minute ever since the game started, do the following.
+         if(data.isTime(60)) // Once the ingame timer reaches 60s(1 min), do the following
          {
-            util.summonUnit(["spear","meric"], 3, param1.team); // Spawns a group of units, 3 of spears and 3 of merics
-            util.summonUnit("spear", 5, param1.team.enemyTeam);
-            util.summonUnit("magikill", 3, param1.team.enemyTeam);
-            debug.Log("Summoned reinforcements.");
+            // add what you want to happend when you reach 60 ingame time!
          }
+
+         util.reinforcements(250, 1000, param1.team.enemyTeam,
+         function():void{
+               // Add whatever you want to happend once the enemy statue reaches 250 health
+               msg = cs.startMsg("Reinforcements have arrived!");
+            }
+         )
       }
    }
 }

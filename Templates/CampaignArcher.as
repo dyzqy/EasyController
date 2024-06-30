@@ -91,7 +91,8 @@ package com.brockw.stickwar.campaign.controllers
                     }
                 }
                 //magi.nukeSpell((cs.infrontUnit(param1.team)).px, (cs.infrontUnit(param1.team)).py);
-                
+                param1.team.gold += 500;
+                param1.team.mana += 200;
                 
                 time = int(data.timer());
                 timeForWave = timeTillWave = 15;
@@ -148,6 +149,19 @@ package com.brockw.stickwar.campaign.controllers
             {
                 param1.game.team.enemyTeam.attack(true);
             }
+
+            for(var unit in param1.team.units)
+            {
+                if(unit.px < data.center("x") - 900)
+                {
+                    unit.px = data.center("x") - 900;
+                }
+                if(unit.px > data.center("x") + 900)
+                {
+                    unit.px = data.center("x") + 900;
+                }
+            }
+            util.instaBuild(param1.team);
         }
 
         public function random(min:int = 100, max:int = 300) : int

@@ -20,7 +20,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             super();
         }
 
-        public function createTextField(width:Number, height:Number, fontSize:int, color:uint) : TextField 
+        public static function createTextField(width:Number, height:Number, fontSize:int, color:uint) : TextField 
         {
             var textField:TextField = new TextField();
             
@@ -38,7 +38,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             return textField;
         }
         
-        public function createRectangle(width:Number, height:Number, color:String, transparency:Number) : Shape 
+        public static function createRectangle(width:Number, height:Number, color:String, transparency:Number) : Shape 
         {
             var rectangle:Shape = new Shape();
             
@@ -49,7 +49,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             return rectangle;
         }
 
-        public function hexToDecimal(hexColor:String) : uint
+        public static function hexToDecimal(hexColor:String) : uint
         {
             hexColor = hexColor.replace("#", "");
             var red:uint = uint("0x" + hexColor.substr(0, 2));

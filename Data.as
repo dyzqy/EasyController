@@ -28,19 +28,19 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          this._gameScreen = gameScreen;
       }
 
-      public function timer() : Number
+      public function timer(type:String = "frames") : Number
       {
-         return this._gameScreen.game.frame / 30;
+         return this._gameScreen.game.frame;
       }
 
-      public function center(pos:String = "X") : Number
+      public function center(pos:String = "x") : Number
       {
-         pos = pos.toUpperCase();
-         if(pos == "X" || pos == "PX")
+         pos = pos.toLowerCase();
+         if(pos == "x" || pos == "px")
          {
             return this._gameScreen.game.map.width / 2;
          }
-         else if(pos == "Y" || pos == "PY")
+         else if(pos == "y" || pos == "py")
          {
             return this._gameScreen.game.map.height / 2;
          }
@@ -57,13 +57,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          {
             rUnit = this._gameScreen.game.unitFactory.getUnit(StringMap.unitNameToType(unitName));
             unitType = StringMap.unitNameToType(unitName);
-            for each(rUnit in team.units)
-            {
-               if(rUnit.isAlive() && unitType == rUnit.type)
-               {
-                  unitNum += 1;
-               }
-            }
+            unitNum = team.unitGroup[unitType].length;
          }
          else
          {
@@ -83,45 +77,44 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return state == currState;
       }
 
-      public function isTime(num:Number) : Boolean
+      public static function isOdd(number:int) : Boolean 
       {
-         return Number(this._gameScreen.game.frame / 30) == num;
+         return number % 2 != 0;
       }
 
-      public function unitData(un:Unit, infType:String) : *
+      public function isTime(num:Number, doafter:Boolean = false) : Boolean
       {
-         un = this._gameScreen.game.unitFactory.getUnit(un.type);
+         // Odd numbers are not devidable by 2
+         var frames:int = int(num * 30);
+         var gameFrames:* = this._gameScreen.game.frame;
+         var result:Boolean = gameFrames == frames;
 
-         infType = infType.toLowerCase();
-         infType = infType.split(" ").join("");
-         if(infType == "hp" || infType == "health")
+         if(doafter)
          {
-            return un.health;
+            return gameFrames > frames;
          }
-         else if(infType == "mhp" || infType == "maxhealth")
+         
+         if(this._gameScreen.isFastForward)
          {
-            return un.maxHealth;
+            if(isOdd(gameFrames) && isOdd(frames))
+            {
+               result = gameFrames == frames;
+            }
+            else if(!isOdd(gameFrames) && !isOdd(frames))
+            {
+               result = gameFrames == frames;
+            }
+            else
+            {
+               result = gameFrames - 1 == frames;
+            }
          }
-         else if(infType == "px" || infType == "x")
-         {
-            return un.px;
-         }
-         else if(infType == "py" || infType == "y")
-         {
-            return un.py;
-         }
-         else if(infType == "flyingheight" || infType == "fh"|| infType == "flyheight")
-         {
-            return un.flyingHeight;
-         }
-         else if(infType == "currenttarget" || infType == "currtarget" || infType == "target")
-         {
-            return un.ai.currentTarget;
-         }
-         return null;
+         
+
+         return result;
       }
 
-      public function statuePos(team:Team, pos:String = "x") : Number
+      public function statuePosition(team:Team, pos:String = "x") : Number
       {
          pos = pos.toUpperCase();
          if(pos == "X" || pos == "PX")
@@ -133,6 +126,11 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             return team.statue.py;
          }
          return 0;
+      }
+
+      public function statueType(team:Team) : String
+      {
+         return team.statueType;
       }
 
       public function homeX(team:Team) : Number
@@ -250,6 +248,11 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             return team.statue.health;
          }
          return null;
+      }
+
+      public function random(min:Number, max:Number) : *
+      {
+         return min + Math.floor(Math.random() * (max - min + 1))
       }
    }
 }

@@ -131,6 +131,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          {
             return Unit.U_MINER_ELEMENT;
          }
+         Debug.instance.error("No match for " + param1, "StringMap")
          return -1;
       }
       

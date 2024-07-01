@@ -258,39 +258,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             unit.ungarrison();
         }
 
-        private function isOdd(number:int) : Boolean 
-        {
-            return number % 2 != 0;
-        }
-
-        public function loop(sec:Number, func:Function) : void
-        {
-            var num:int = 0;
-            var frames:int = int(sec * 30);
-            var gameFrames:* = this._gameScreen.game.frame;
-
-            if(this._gameScreen.isFastForward)
-            {
-                if(isOdd(gameFrames) && isOdd(frames))
-                {
-                    num = 0;
-                }
-                else if(!isOdd(gameFrames) && !isOdd(frames))
-                {
-                    num = 0;
-                }
-                else
-                {
-                    num = 1;
-                }
-            }
-
-            if (gameFrames - num % frames == 0)
-            {
-                func();
-            }
-        }
-
         public function king(un:Unit) : void
         {
             if(un.isDead || un.isDieing)
@@ -444,9 +411,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                 debug.error("The 'swapUnitButton()' function is still under work!", "Util")
                 return;
             }
-
-            registerUnit(units[1], team);
-
+            
             var unit1:* = StringMap.unitNameToType(units[0]);
             var unit2:* = StringMap.unitNameToType(units[1]);
             registerUnit(unit1, team);
@@ -559,12 +524,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             if(type is String)
             {
                 var unitType:int = StringMap.unitNameToType(type);
-                for each(un in team.unitGroups[unitType])
-                {
-                    result.push(un);
-                }
+                return team.unitGroups[unitType];
             }
-            return result;
+            return null;
         }
     }
 }

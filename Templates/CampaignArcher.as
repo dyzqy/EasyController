@@ -14,12 +14,15 @@ package com.brockw.stickwar.campaign.controllers
         public function CampaignArcher(param1:GameScreen)
         {
             super(param1);
-            this.frames = 0;
         }
 
         public function start(param1:GameScreen) : void
         {
-            msg = cs.startMsg("The enemy archidons have teamed up with the shadowrath with create new traps!");
+            msg = cs.startMsg("The enemy archidons have teamed up with the shadowrath to create new traps, beware where you put your feet!");
+            for(var i:int = 0; i < 5; i++)
+            {
+                pp.landmine(param1.team.statue.px + 750 + data.random(0, 0), param1.game.map.height / 5 * i, param1.team.enemyTeam, 0.15);
+            }
         }
         
         override public function update(param1:GameScreen) : void
@@ -30,11 +33,7 @@ package com.brockw.stickwar.campaign.controllers
                 hasStarted = true;
             }
             cs.message(msg, 8);
-            pp.updateProjectiles(param1);
-            for(var i:int = 0; i < 5; i++)
-            {
-                pp.landmine(param1.team.statue.px + 750, param1.game.map.height / 5 * i);
-            }
+            pp.updateProjectiles();
         }
     }
 }

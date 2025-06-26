@@ -16,7 +16,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public static const developer:String = "dyzqy";
 
-        public static const help:String = "AsePlayer, s07, RinasSam"; // in alphabetical order, not in help amount.
+        public static const help:String = "AsePlayer, s07, RinasSam, Clementchuah"; // in alphabetical order, not in help amount.
 
         public static const link:String = "https://dyzqy.github.io/";
 
@@ -25,6 +25,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         public var isBeta:Boolean = true;
 
         public var isDev:Boolean = false;
+
+        public var 
 
         private var description:TextField;
 

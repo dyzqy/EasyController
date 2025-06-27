@@ -22,15 +22,12 @@ package com.brockw.stickwar.campaign.controllers
          super();
          this._gameScreen = gameScreen;
 
-         if(this.draw == null)
-         {
-            this.loader = new Loader(gameScreen);
+         this.loader = new Loader(gameScreen);
 
-            this.data = new Data(gameScreen);
-            this.debug = new Debug(gameScreen);
-            this.util = new Util(gameScreen);
-            this.cs = new CutScene(gameScreen);
-         }
+         this.data = new Data(gameScreen);
+         this.debug = new Debug(gameScreen);
+         this.util = new Util(gameScreen);
+         this.cs = new CutScene(gameScreen);
       }
       
       public function update(param1:GameScreen) : void

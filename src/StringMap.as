@@ -380,20 +380,20 @@ package com.brockw.stickwar.campaign.controllers.EasyController
       }
 
       // Gets unit int with whatever data you give it.
-      public function getUnit(data:*) : * 
+      public static function getUnit(data:*) : * 
       {
          if(data is String)
          {
             return unitNameToType(data);
          }
-         else if(data is Int)
+         else if(data is int)
          {
             return data;
          }
          else if(data is Array)
          {
             var arrayToReturn:Array = [];
-            for(int i = 0; i < data.length; i++)
+            for(var i:int = 0; i < data.length; i++)
             {
                arrayToReturn.push(getUnit(data[i]));
             }

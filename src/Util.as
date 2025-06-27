@@ -30,12 +30,12 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         // TODO: test if this works.
         // Summons unit(s) of a specified team.
-        // "u1" A specified type of unit or an array of unit types.
+        // "unitData" A specified type of unit or an array of unit types.
         // "copies" How many each specified unit should be spawned.
         // "teamSpawn" Which team the unit spawns in.
         // "func" A function to run on all units spawned.
         // "returnType" The type that the function should return
-        public function summonUnit(u1:*, copies:int = 1, teamSpawn:Team = null, func:Function = null, returnType:Class = null) : *
+        public function summonUnit(unitData:*, copies:int = 1, teamSpawn:Team = null, func:Function = null, returnType:Class = null) : *
         {
             if(teamSpawn == null)
             {
@@ -43,7 +43,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
 
             var units:Array = [];
-            u1 = StringMap.getUnit(u1);
+            var u1:* = StringMap.getUnit(unitData);
 
             if (u1 is Array)
             {
@@ -52,11 +52,11 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                     summonUnit(u1, copies, teamSpawn, func, returnType);
                 }
             }
-            else if(u1 is Int)
+            else if(u1 is int)
             {
-                for(int i = 0; i < copies; i++)
+                for(var i:int = 0; i < copies; i++)
                 {
-                    var un:Unit = _gameScreen.game.unitFactory.getUnit(u1[j]);
+                    var un:Unit = _gameScreen.game.unitFactory.getUnit(u1);
                     teamSpawn.spawn(un, _gameScreen.game);
                     teamSpawn.population += un.population;
 
@@ -93,7 +93,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
             if(units is Array)
             {
-                while(var i:int = 0; i < units.length; i++)
+                for(var i:int = 0; i < units.length; i++)
                 {
                     registerUnits(units, team);
                 }

@@ -6,11 +6,6 @@ package com.brockw.stickwar.campaign.controllers
    
    public class CampaignTutorial extends CampaignController
    {
-
-      private var reinforced:Boolean;
-      
-      private var msg:InGameMessage; // Ingame Message.
-
       private var hasStarted:Boolean;
       
       public function CampaignTutorial(param1:GameScreen)
@@ -21,8 +16,9 @@ package com.brockw.stickwar.campaign.controllers
       public function start(param1:GameScreen) : void
       {
          // Summons 3 swordwraths for your team.
-         util.summonUnit("swordwrath", 3, param1.team); 
-         msg = cs.startMsg("Starting Message Template.", ""); // Starting message
+         util.summonUnit("swordwrath", 3, param1.team, function(unit:Unit):void{
+            unit.px = 1500;
+         }); 
       }
       
       override public function update(param1:GameScreen) : void
@@ -32,7 +28,6 @@ package com.brockw.stickwar.campaign.controllers
             start(param1);
             hasStarted = true;
          }
-         cs.message(msg,8); // Message update. Essential for displaying any message.
          
          if(data.isTime(60)) // Once the ingame timer reaches 60s(1 min), do the following
          {

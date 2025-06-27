@@ -135,6 +135,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         //     un.kill();
         // }
 
+        // TODO: Verify if this can run in multiplayer side 
         public function hold(unit:Unit, x:Number = 0, y:Number = 0) : void
         {
             var move:UnitMove = new UnitMove();
@@ -146,6 +147,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             move.execute(_gameScreen.game);
         }
 
+        // TODO: Verify if this can run in multiplayer side 
         public function move(unit:Unit, x:Number = 0, y:Number = 0) : void
         {
             var move:UnitMove = new UnitMove(); 
@@ -157,16 +159,19 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             move.execute(_gameScreen.game);
         }
 
+        // TODO: Verify if this can run in multiplayer side 
         public function garrison(unit:Unit) : void
         {
             unit.garrison();
         }
 
+        // TODO: Verify if this can run in multiplayer side 
         public function ungarrison(unit:Unit) : void
         {
             unit.ungarrison();
         }
 
+        // TODO: Make this more dynamic. As in make it possible to only instantly build certain units, or have it as a percentage.
         public function instaBuild(team:Team) : void
         {
             var unit:* = null;
@@ -177,15 +182,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                     unit[0][1] = unit[0][0].createTime + 9;
                 }
             }
-        }
-
-        // Fully heals a unit to max health.
-        public function restoreHealth(type:*) : void
-        {
-            unitsreducedcode(type, function(un:Unit):void{
-                un.health = un.maxHealth;
-            });
-            
         }
 
         // Passively heal units by amount divided by 30.
@@ -275,8 +271,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         // TODO: Decide if to keep these 2 functions below? They do not abide by the DIY "rule" I set. 
         public function changeStatue(team:Team, statue:String) : void
         {
-            statue = statue.toLowerCase();
-            team.statueType = statue;
+            team.statueType = statue.toLowerCase();
         }
 
         public function changeMusic(name:String = "orderInGame") : void

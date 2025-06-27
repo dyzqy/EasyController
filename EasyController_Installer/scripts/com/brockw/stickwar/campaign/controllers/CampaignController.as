@@ -516,7 +516,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             {
                 for(var i:int = 0; i < u1.length; i++)
                 {
-                    summonUnit(u1, copies, teamSpawn, func, returnType);
+                    summonUnit(u1[i], copies, teamSpawn, func, returnType);
                 }
             }
             else if(u1 is int)

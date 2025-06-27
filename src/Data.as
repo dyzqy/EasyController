@@ -10,14 +10,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
    import com.brockw.stickwar.engine.units.*;
    import flash.utils.*;
 
+   // TODO: Orginise all of the functions inside to their respective categories.
    public class Data
    {
-      public static const T_NOT_RESEARCHED:int = 0;
-
-      public static const T_RESEARCHING:int = 1;
-
-      public static const T_RESEARCHED:int = 2;
-
 
       private var _gameScreen:GameScreen;
 
@@ -28,11 +23,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          this._gameScreen = gameScreen;
       }
 
-      public function timer(type:String = "frames") : Number
-      {
-         return this._gameScreen.game.frame;
-      }
-
+      // TODO: This is ok, but not ok. Not really DIY
       public function center(pos:String = "x") : Number
       {
          pos = pos.toLowerCase();
@@ -47,41 +38,38 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return 0;
       }
 
-      public function unitAmount(team:Team, unitName:String = "") : int
+      // Returns amount of all units or of a specfic type(s) of unit(s).
+      public function unitAmount(team:Team, unitData:* = null) : int
       {
-         var rUnit:Unit = null;
-         var unitType:int = 0;
-         var unitNum:int = 0;
-
-         if(unitName != "")
+         if(unitName == null)
          {
-            rUnit = this._gameScreen.game.unitFactory.getUnit(StringMap.unitNameToType(unitName));
-            unitType = StringMap.unitNameToType(unitName);
-            unitNum = team.unitGroup[unitType].length;
+            return team.units.length;
          }
          else
          {
-            for each(rUnit in team.units)
+            var units:* = StringMap.getUnit(unitData);
+            if(units is Array)
             {
-               if(rUnit.isAlive())
+               var length:int = 0;
+               for(var i:int = 0; i < units.length; i++)
                {
-                  unitNum += 1;
+                  length += unitAmount(team, units)
                }
+               return length;
+            }
+            else if(units is int)
+            {
+               return team.unitGroup[units].length;
             }
          }
-         return unitNum;
       }
 
-      public function state(state:int, currState:int) : Boolean
-      {
-         return state == currState;
-      }
-
-      public static function isOdd(number:int) : Boolean 
+      private static function isOdd(number:int) : Boolean 
       {
          return number % 2 != 0;
       }
 
+      // TODO: There might be a better way to do this. If there is, do it.
       public function isTime(num:Number, doafter:Boolean = false) : Boolean
       {
          // Odd numbers are not devidable by 2
@@ -109,55 +97,30 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                result = gameFrames - 1 == frames;
             }
          }
-         
 
          return result;
       }
 
-      public function statuePosition(team:Team, pos:String = "x") : Number
-      {
-         pos = pos.toUpperCase();
-         if(pos == "X" || pos == "PX")
-         {
-            return team.statue.px;
-         }
-         else if(pos == "Y" || pos == "PY")
-         {
-            return team.statue.py;
-         }
-         return 0;
-      }
-
-      public function statueType(team:Team) : String
-      {
-         return team.statueType;
-      }
-
-      public function homeX(team:Team) : Number
-      {
-         return team.homeX;
-      }
-
       public function campaignInfo(infType:String) : *
       {
-         infType = infType.toUpperCase();
-         if(infType == "NAME" || infType == "TITLE")
+         infType = infType.toLowerCase();
+         if(infType == "name" || infType == "title")
          {
             return this._gameScreen.main.campaign.getCurrentLevel().title;
          }
-         else if(infType == "DESC" || infType == "DESCRIPTION")
+         else if(infType == "desc" || infType == "description")
          {
             return this._gameScreen.main.campaign.getCurrentLevel().storyName;
          }
-         else if(infType == "NUM" || infType == "NUMBER")
+         else if(infType == "num" || infType == "number")
          {
             return this._gameScreen.team.game.main.campaign.currentLevel;
          }
-         else if(infType == "DIFF" || infType == "DIFFICULTY" || infType == "DIF")
+         else if(infType == "diff" || infType == "dif" || infType == "difficulty")
          {
             return this._gameScreen.team.game.main.campaign.difficultyLevel;
          }
-         else if(infType == "TIP")
+         else if(infType == "tip")
          {
             var prefix:String = "Tip: ";
             var tip:String = this._gameScreen.main.campaign.getCurrentLevel().tip;
@@ -169,87 +132,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return null;
       }
 
-      public function researchedMap() : Array
-      {
-         var researchedTechs:Array = new Array(61);
-
-         var availableTechs:Dictionary = Tech.isResearchedMap;
-
-         var i = 0;
-         for(i = 0; i >= -61; i--)
-         {
-            if(availableTechs[i] == true)
-            {
-               researchedTechs[Math.abs(i)] = i;
-            } else {
-               researchedTechs[Math.abs(i)] = 0;
-            }
-         }
-         return researchedTechs;
-      }
-
-      public function cameraPos() : Number
-      {
-         return this._gameScreen.game.screenX;
-      }
-
-      public function techState(techNum:int, team:Team) : int
-      {
-         if(team.tech.isResearched(techNum))
-         {
-            return T_RESEARCHED;
-         } 
-         else if(team.tech.isResearching(techNum))
-         {
-            return T_RESEARCHING;
-         }
-         else if(!team.tech.isResearching(techNum) && !team.tech.isResearched(techNum))
-         {
-            return T_NOT_RESEARCHED;
-         }
-         return null;
-      }
-
-      public function teamState(team:Team) : int
-      {
-         if(team.currentAttackState == Team.G_GARRISON)
-         {
-            return Team.G_GARRISON;
-         } 
-         else if(team.currentAttackState == Team.G_DEFEND)
-         {
-            return Team.G_DEFEND;
-         }
-         else if(team.currentAttackState == Team.G_ATTACK)
-         {
-            return Team.G_ATTACK;
-         }
-         return null;
-      }
-
-      public function teamInfo(infType:String, team:Team) : *
-      {
-         infType = infType.toUpperCase();
-         infType = infType.split(" ").join("");
-         if(infType == "GOLD" || infType == "G")
-         {
-            return team.gold;
-         }
-         else if(infType == "MANA" || infType == "M")
-         {
-            return team.mana;
-         }
-         else if(infType == "POPULATION" || infType == "POP" || infType == "P")
-         {
-            return team.population;
-         }
-         else if(infType == "STATUE")
-         {
-            return team.statue.health;
-         }
-         return null;
-      }
-
+      // TODO: Make this use brock's random number generator instead of AS's.
       public function random(min:Number, max:Number) : *
       {
          return min + Math.floor(Math.random() * (max - min + 1))

@@ -376,5 +376,31 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          }
          return null;
       }
+
+      // Gets unit int with whatever data you give it.
+      public function getUnit(data:*) : * 
+      {
+         if(data is String)
+         {
+            return unitNameToType(data);
+         }
+         else if(data is Int)
+         {
+            return data;
+         }
+         else if(data is Array)
+         {
+            var arrayToReturn:Array = [];
+            for(int i = 0; i < data.length; i++)
+            {
+               arrayToReturn.push(getUnit(data[i]));
+            }
+
+            return arrayToReturn;
+         }
+
+         debug.error("Type " + data + " is not supported.", "StringMap");
+         return null;
+      }
    }
 }

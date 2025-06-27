@@ -43,7 +43,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
 
             var units:Array = [];
-            u1 = getUnit(u1);
+            u1 = StringMap.getUnit(u1);
 
             if (u1 is Array)
             {
@@ -89,7 +89,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         public function registerUnit(units:*, team:Team) : void
         {
             var level:* = this._gameScreen.main.campaign.getCurrentLevel();
-            units = getUnit(units);
+            units = StringMap.getUnit(units);
 
             if(units is Array)
             {
@@ -288,7 +288,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
             else if(!(team is Team))
             {
-                debug.error("Paramater must be null or a Team. disableDuels()/disableFinishers().", "Util");
+                debug.error("Paramater must be null or a Team. disableFinishers().", "Util");
             }
             else
             {
@@ -352,33 +352,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         private function getUnitGroup(type:*, team:Team) : Array
         {
-            return team.unitGroups[getUnit(type)];
-        }
-
-        // Gets unit int with whatever data you give it.
-        private function getUnit(data:*) : * 
-        {
-            if(data is String)
-            {
-                return StringMap.unitNameToType(data);
-            }
-            else if(data is Int)
-            {
-                return data;
-            }
-            else if(data is Array)
-            {
-                var arrayToReturn:Array = [];
-                for(int i = 0; i < data.length; i++)
-                {
-                    arrayToReturn.push(getUnit(data[i]));
-                }
-
-                return arrayToReturn;
-            }
-
-            debug.error("Type " + data + " is not supported.", "Util");
-            return null;
+            return team.unitGroups[StringMap.getUnit(type)];
         }
     }
 }

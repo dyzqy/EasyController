@@ -26,7 +26,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public var isDev:Boolean = false;
 
-        public var 
+        public var isSW2:Boolean = false; 
 
         private var description:TextField;
 

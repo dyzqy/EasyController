@@ -270,8 +270,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         private function removeProjectile(projectile:Projectile) : void
         {
             projectile.px = -10;
-            return;
-            // projectileMap ain't public, so gotta make do with what we got lel
+            return; // projectileMap ain't public, so gotta make do with what we got lel
+           
             gameScreen.game.projectileManager.projectileMap[projectile.type].returnItem(projectile);
             if(gameScreen.game.battlefield.contains(projectile))
             {

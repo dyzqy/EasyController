@@ -38,14 +38,6 @@ package com.brockw.stickwar.campaign.controllers
          {
             // add what you want to happend when you reach 60 ingame time!
          }
-
-         util.reinforcements(250, 1000, param1.team.enemyTeam,
-         function():void{
-               // Add whatever you want to happend once the enemy statue reaches 250 health
-               msg = cs.startMsg("Reinforcements have arrived!");
-               reinforced = true;
-            }
-         , true, reinforced);
       }
    }
 }

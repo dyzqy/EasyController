@@ -31,7 +31,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             super();
             Loader.instance = this;
             this.stringMap = new StringMap();
-            this.draw = new Draw();
             this._gameScreen = gameScreen;
         }
     }

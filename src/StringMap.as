@@ -10,6 +10,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
       {
          super();
       }
+
+      // TODO: Add fuzzy search.
       
       public static function unitNameToType(param1:String) : int
       {

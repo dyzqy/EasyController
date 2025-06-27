@@ -53,24 +53,22 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         // Enables functionality for all hud elements that influence the game. 
         public function enableUI(ui:Boolean = true) : void
         {
-                var hud:MovieClip = _gameScreen.userInterface.hud.hud;
-                
-                hud.economicDisplay.visible = true;
-                hud.economicDisplay.alpha = 1;
-                _gameScreen.userInterface.isGlobalsEnabled = true;
-                if(hud.fastForward != null)
-                {
-                    hud.fastForward.visible = true;
-                }
-
-                for(var i:int = 0; i < unitsAvailable.length; i++)
-                {
-                    _gameScreen.team.unitsAvailable[unitsAvailable[i]] = 1;
-                    i++;
-                }  
+            var hud:MovieClip = _gameScreen.userInterface.hud.hud;
             
+            hud.economicDisplay.visible = true;
+            hud.economicDisplay.alpha = 1;
+            _gameScreen.userInterface.isGlobalsEnabled = true;
+            if(hud.fastForward != null)
+            {
+                hud.fastForward.visible = true;
+            }
+
+            for(var i:int = 0; i < unitsAvailable.length; i++)
+            {
+                _gameScreen.team.unitsAvailable[unitsAvailable[i]] = 1;
+                i++;
+            }  
+            unitsAvailable = [];
         }
-
-
     }
 }

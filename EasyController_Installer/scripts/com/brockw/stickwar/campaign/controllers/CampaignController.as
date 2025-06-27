@@ -5,6 +5,8 @@ package com.brockw.stickwar.campaign.controllers
    
    public class CampaignController
    {
+      private var _gameScreen:GameScreen;
+
       public var loader:Loader;
 
       public var data:Data;
@@ -14,12 +16,6 @@ package com.brockw.stickwar.campaign.controllers
       public var util:Util;
 
       public var cs:CutScene;
-
-      public var draw:Draw;
-
-      public var pp:ProjectilePlus;
-      
-      private var _gameScreen:GameScreen;
       
       public function CampaignController(gameScreen:GameScreen)
       {
@@ -30,12 +26,10 @@ package com.brockw.stickwar.campaign.controllers
          {
             this.loader = new Loader(gameScreen);
 
-            this.draw = loader.draw;
             this.data = new Data(gameScreen);
             this.debug = new Debug(gameScreen);
             this.util = new Util(gameScreen);
             this.cs = new CutScene(gameScreen);
-            this.pp = new ProjectilePlus(gameScreen,this.util);
          }
       }
       
@@ -56,14 +50,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
    import com.brockw.stickwar.engine.units.*;
    import flash.utils.*;
 
+   // TODO: Orginise all of the functions inside to their respective categories.
    public class Data
    {
-      public static const T_NOT_RESEARCHED:int = 0;
-
-      public static const T_RESEARCHING:int = 1;
-
-      public static const T_RESEARCHED:int = 2;
-
 
       private var _gameScreen:GameScreen;
 
@@ -74,11 +63,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          this._gameScreen = gameScreen;
       }
 
-      public function timer(type:String = "frames") : Number
-      {
-         return this._gameScreen.game.frame;
-      }
-
+      // TODO: This is ok, but not ok. Not really DIY
       public function center(pos:String = "x") : Number
       {
          pos = pos.toLowerCase();
@@ -93,41 +78,38 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return 0;
       }
 
-      public function unitAmount(team:Team, unitName:String = "") : int
+      // Returns amount of all units or of a specfic type(s) of unit(s).
+      public function unitAmount(team:Team, unitData:* = null) : int
       {
-         var rUnit:Unit = null;
-         var unitType:int = 0;
-         var unitNum:int = 0;
-
-         if(unitName != "")
+         if(unitName == null)
          {
-            rUnit = this._gameScreen.game.unitFactory.getUnit(StringMap.unitNameToType(unitName));
-            unitType = StringMap.unitNameToType(unitName);
-            unitNum = team.unitGroup[unitType].length;
+            return team.units.length;
          }
          else
          {
-            for each(rUnit in team.units)
+            var units:* = StringMap.getUnit(unitData);
+            if(units is Array)
             {
-               if(rUnit.isAlive())
+               var length:int = 0;
+               for(var i:int = 0; i < units.length; i++)
                {
-                  unitNum += 1;
+                  length += unitAmount(team, units)
                }
+               return length;
+            }
+            else if(units is int)
+            {
+               return team.unitGroup[units].length;
             }
          }
-         return unitNum;
       }
 
-      public function state(state:int, currState:int) : Boolean
-      {
-         return state == currState;
-      }
-
-      public static function isOdd(number:int) : Boolean 
+      private static function isOdd(number:int) : Boolean 
       {
          return number % 2 != 0;
       }
 
+      // TODO: There might be a better way to do this. If there is, do it.
       public function isTime(num:Number, doafter:Boolean = false) : Boolean
       {
          // Odd numbers are not devidable by 2
@@ -155,55 +137,30 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                result = gameFrames - 1 == frames;
             }
          }
-         
 
          return result;
       }
 
-      public function statuePosition(team:Team, pos:String = "x") : Number
-      {
-         pos = pos.toUpperCase();
-         if(pos == "X" || pos == "PX")
-         {
-            return team.statue.px;
-         }
-         else if(pos == "Y" || pos == "PY")
-         {
-            return team.statue.py;
-         }
-         return 0;
-      }
-
-      public function statueType(team:Team) : String
-      {
-         return team.statueType;
-      }
-
-      public function homeX(team:Team) : Number
-      {
-         return team.homeX;
-      }
-
       public function campaignInfo(infType:String) : *
       {
-         infType = infType.toUpperCase();
-         if(infType == "NAME" || infType == "TITLE")
+         infType = infType.toLowerCase();
+         if(infType == "name" || infType == "title")
          {
             return this._gameScreen.main.campaign.getCurrentLevel().title;
          }
-         else if(infType == "DESC" || infType == "DESCRIPTION")
+         else if(infType == "desc" || infType == "description")
          {
             return this._gameScreen.main.campaign.getCurrentLevel().storyName;
          }
-         else if(infType == "NUM" || infType == "NUMBER")
+         else if(infType == "num" || infType == "number")
          {
             return this._gameScreen.team.game.main.campaign.currentLevel;
          }
-         else if(infType == "DIFF" || infType == "DIFFICULTY" || infType == "DIF")
+         else if(infType == "diff" || infType == "dif" || infType == "difficulty")
          {
             return this._gameScreen.team.game.main.campaign.difficultyLevel;
          }
-         else if(infType == "TIP")
+         else if(infType == "tip")
          {
             var prefix:String = "Tip: ";
             var tip:String = this._gameScreen.main.campaign.getCurrentLevel().tip;
@@ -215,87 +172,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return null;
       }
 
-      public function researchedMap() : Array
-      {
-         var researchedTechs:Array = new Array(61);
-
-         var availableTechs:Dictionary = Tech.isResearchedMap;
-
-         var i = 0;
-         for(i = 0; i >= -61; i--)
-         {
-            if(availableTechs[i] == true)
-            {
-               researchedTechs[Math.abs(i)] = i;
-            } else {
-               researchedTechs[Math.abs(i)] = 0;
-            }
-         }
-         return researchedTechs;
-      }
-
-      public function cameraPos() : Number
-      {
-         return this._gameScreen.game.screenX;
-      }
-
-      public function techState(techNum:int, team:Team) : int
-      {
-         if(team.tech.isResearched(techNum))
-         {
-            return T_RESEARCHED;
-         } 
-         else if(team.tech.isResearching(techNum))
-         {
-            return T_RESEARCHING;
-         }
-         else if(!team.tech.isResearching(techNum) && !team.tech.isResearched(techNum))
-         {
-            return T_NOT_RESEARCHED;
-         }
-         return null;
-      }
-
-      public function teamState(team:Team) : int
-      {
-         if(team.currentAttackState == Team.G_GARRISON)
-         {
-            return Team.G_GARRISON;
-         } 
-         else if(team.currentAttackState == Team.G_DEFEND)
-         {
-            return Team.G_DEFEND;
-         }
-         else if(team.currentAttackState == Team.G_ATTACK)
-         {
-            return Team.G_ATTACK;
-         }
-         return null;
-      }
-
-      public function teamInfo(infType:String, team:Team) : *
-      {
-         infType = infType.toUpperCase();
-         infType = infType.split(" ").join("");
-         if(infType == "GOLD" || infType == "G")
-         {
-            return team.gold;
-         }
-         else if(infType == "MANA" || infType == "M")
-         {
-            return team.mana;
-         }
-         else if(infType == "POPULATION" || infType == "POP" || infType == "P")
-         {
-            return team.population;
-         }
-         else if(infType == "STATUE")
-         {
-            return team.statue.health;
-         }
-         return null;
-      }
-
+      // TODO: Make this use brock's random number generator instead of AS's.
       public function random(min:Number, max:Number) : *
       {
          return min + Math.floor(Math.random() * (max - min + 1))
@@ -636,7 +513,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
 
             var units:Array = [];
-            u1 = getUnit(u1);
+            u1 = StringMap.getUnit(u1);
 
             if (u1 is Array)
             {
@@ -682,7 +559,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         public function registerUnit(units:*, team:Team) : void
         {
             var level:* = this._gameScreen.main.campaign.getCurrentLevel();
-            units = getUnit(units);
+            units = StringMap.getUnit(units);
 
             if(units is Array)
             {
@@ -728,6 +605,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         //     un.kill();
         // }
 
+        // TODO: Verify if this can run in multiplayer side 
         public function hold(unit:Unit, x:Number = 0, y:Number = 0) : void
         {
             var move:UnitMove = new UnitMove();
@@ -739,6 +617,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             move.execute(_gameScreen.game);
         }
 
+        // TODO: Verify if this can run in multiplayer side 
         public function move(unit:Unit, x:Number = 0, y:Number = 0) : void
         {
             var move:UnitMove = new UnitMove(); 
@@ -750,16 +629,19 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             move.execute(_gameScreen.game);
         }
 
+        // TODO: Verify if this can run in multiplayer side 
         public function garrison(unit:Unit) : void
         {
             unit.garrison();
         }
 
+        // TODO: Verify if this can run in multiplayer side 
         public function ungarrison(unit:Unit) : void
         {
             unit.ungarrison();
         }
 
+        // TODO: Make this more dynamic. As in make it possible to only instantly build certain units, or have it as a percentage.
         public function instaBuild(team:Team) : void
         {
             var unit:* = null;
@@ -770,15 +652,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                     unit[0][1] = unit[0][0].createTime + 9;
                 }
             }
-        }
-
-        // Fully heals a unit to max health.
-        public function restoreHealth(type:*) : void
-        {
-            unitsreducedcode(type, function(un:Unit):void{
-                un.health = un.maxHealth;
-            });
-            
         }
 
         // Passively heal units by amount divided by 30.
@@ -868,8 +741,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         // TODO: Decide if to keep these 2 functions below? They do not abide by the DIY "rule" I set. 
         public function changeStatue(team:Team, statue:String) : void
         {
-            statue = statue.toLowerCase();
-            team.statueType = statue;
+            team.statueType = statue.toLowerCase();
         }
 
         public function changeMusic(name:String = "orderInGame") : void
@@ -886,7 +758,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
             else if(!(team is Team))
             {
-                debug.error("Paramater must be null or a Team. disableDuels()/disableFinishers().", "Util");
+                debug.error("Paramater must be null or a Team. disableFinishers().", "Util");
             }
             else
             {
@@ -950,316 +822,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         private function getUnitGroup(type:*, team:Team) : Array
         {
-            return team.unitGroups[getUnit(type)];
-        }
-
-        // Gets unit int with whatever data you give it.
-        private function getUnit(data:*) : * 
-        {
-            if(data is String)
-            {
-                return StringMap.unitNameToType(data);
-            }
-            else if(data is Int)
-            {
-                return data;
-            }
-            else if(data is Array)
-            {
-                var arrayToReturn:Array = [];
-                for(int i = 0; i < data.length; i++)
-                {
-                    arrayToReturn.push(getUnit(data[i]));
-                }
-
-                return arrayToReturn;
-            }
-
-            debug.error("Type " + data + " is not supported.", "Util");
-            return null;
-        }
-    }
-}
-package com.brockw.stickwar.campaign.controllers.EasyController
-{
-    import com.brockw.stickwar.GameScreen;
-    import com.brockw.stickwar.engine.Team.*;
-    import com.brockw.stickwar.engine.projectile.*;
-    import com.brockw.stickwar.engine.units.*;
-    import flash.utils.*;
-
-    public class ProjectilePlus
-    {
-        private var gameScreen:GameScreen;
-
-        private var util:Util;
-
-        // All arrays
-
-        private var firewalls:Array = [];
-
-        private var eletowers:Array = [];
-
-        private var mines:Array = [];
-
-        private var triggers:Array = [];
-
-        // private var sandstorm:Array = []:
-
-        // privare var thorn:Array = [];
-
-        public function ProjectilePlus(gs:GameScreen, utilities:Util)
-        {
-            this.gameScreen = gs;
-            this.util = utilities;
-            super();
-        }
-
-        public function firewall(px:*, team:Team, size:int, num:int, fireFrames:int = 60, fireDamage:Number = 1, radius:int = 15) : void
-        {
-            var i:int = 0;
-            var fires:Array = [];
-            while(i < num)
-            {
-                gameScreen.game.projectileManager.initFireOnTheGround(px,i * team.game.map.height / num,0,team,team.direction,size);
-                fires.push(getProjectile()); // add to array, but won't use it for now 
-                i++;
-            }
-            var firewallinf:Array = [px,team,radius,team.game.frame,fireFrames,fireDamage,fires];
-            firewalls.push(firewallinf);
-        }
-
-        public function teslatower(px:*, py:*, team:Team, range:int = 300, lifeFrames:int = 1200, frequency:int = 3) : void
-        {
-            team.game.projectileManager.initSandstormTower(px,py,0,team,team.direction,lifeFrames);
-            var sandstorminf:Array = [px,py,team,range,lifeFrames,team.game.frame,frequency,null,new Dictionary()];
-            eletowers.push(sandstorminf);
-        }
-
-        public function landmine(px:Number, py:Number, team:Team, size:Number = 0.25, damage:Number = 50, fireFrames:int = 60, fireDamage:Number = 1) : void
-        {
-            team.game.projectileManager.initMound(px,py,0,team,team.direction);
-            var mound:MoundOfDirt = MoundOfDirt(getProjectile());
-            var minesinf:Array = [px,py,team,mound,size];
-            mound.scaleX *= size;
-            mound.scaleY *= size;
-            mines.push(minesinf);
-        }
-
-        public function trigger(px:Number, py:Number, team:Team, width:Number, height:Number, func:Function) : void
-        {
-            var info:Array = [px, py, team, width, height, func];
-            triggers.push(info);
-        }
-
-        // Update Stuff, you only need to run updateProjectiles :thumbsup:
-
-        public function updateProjectiles() : void
-        {
-            updateFireWalls(gameScreen);
-            updateEleTowers(gameScreen);
-            updateMines(gameScreen);
-            // add trigger
-        }
-
-        private function updateFireWalls(gs:GameScreen)
-        {
-            //[px,team,radius,team.game.frame,fireFrames,fireDamage,fires]
-            if(firewalls.length == 0)
-            {
-                return;
-            }
-            var i:int = 0;
-            while(i < firewalls.length)
-            {
-                var j:int = 0;
-                var firewall:Object = firewallobj(firewalls[i]);
-
-                var fires:Array = firewall.fires;
-                var radius:int = firewall.radius;
-                //break;
-
-                if(fires.length == 0)
-                {
-                    firewalls.splice(firewalls.indexOf(firewalls[i]),1);
-                    i--;
-                    break;
-                }
-                
-                gs.game.spatialHash.mapInArea(firewall.px - radius, 0, firewall.px + radius, gs.game.map.height, function(param1:Unit):*
-                {
-                    if(param1.team != firewall.team && param1.pz == 0)
-                    {
-                        if(Math.abs(param1.px - firewall.px) < radius)
-                        {
-                            param1.setFire(firewall.fireFrames,firewall.fireDamage);
-                        }
-                    }
-                });
-            }
-        }
-
-        private function updateEleTowers(gs:GameScreen)
-        {
-            if(eletowers.length == 0)
-            {
-                return;
-            }
-            var i:int = 0;
-            while(i < eletowers.length)
-            {
-                var targetUnit:Unit = eletowers[i][7]
-                var unitsInArea:Dictionary = eletowers[i][8];
-                if(eletowers[i][4] > gs.game.frame - eletowers[i][5])
-                {
-                    gs.game.spatialHash.mapInArea(eletowers[i][0] - eletowers[i][3],0,eletowers[i][0] + eletowers[i][3],gs.game.map.height,function(param1:Unit):void
-                    {
-                        var sandstormRange:int = int(eletowers[i][3]);
-                        var frequency:int = 30 * eletowers[i][6];
-                        if(param1.team != eletowers[i][2] && param1.pz == 0)
-                        {
-                            if(Math.abs(param1.px - eletowers[i][0]) < sandstormRange)
-                            {
-                                if(targetUnit == null || targetUnit.isDead || targetUnit.isDieing)
-                                {
-                                    targetUnit = param1;
-                                }
-                                if(unitsInArea == null)
-                                {
-                                    unitsInArea = new Dictionary();
-                                }
-                                if(unitsInArea[param1] == null)
-                                {
-                                    unitsInArea[param1] = param1.team.game.frame;
-                                }
-                                if((param1.team.game.frame - unitsInArea[param1]) % frequency == 0 && param1 == targetUnit)
-                                {
-                                    param1.damage(Unit.D_NO_SOUND,50,null);
-                                    param1.team.game.projectileManager.initLightning(air,param1,0);
-                                }
-                            }
-                            else if(Math.abs(param1.px - eletowers[i][0]) > sandstormRange)
-                            {
-                                if(unitsInArea != null && unitsInArea[param1] != null)
-                                {
-                                    unitsInArea[param1] = null;
-                                    targetUnit = null;
-                                }
-                            }
-                        }
-                    });
-                    i++;
-                }
-                else
-                {
-                    eletowers.splice(eletowers.indexOf(eletowers[i]),1);
-                    i--;
-                }
-            }
-        }
-
-        private function updateMines(gs:GameScreen) : void
-        {
-            if(mines.length == 0)
-            {
-                return;
-            }
-            var i:int = 0;
-            while(i < mines.length)
-            {
-                var mine:Object = mineobj(mines[i]);
-                var team:Team = mine.team;
-                if(mine.mound.isReadyForCleanup() || mine.mound == null)
-                {
-                    gs.game.projectileManager.initMound(mine.px,mine.py,0,mine.team,mine.direction);
-                    team = mine.team;
-                    var mound:MoundOfDirt = MoundOfDirt(getProjectile());
-                    mound.scaleX *= mine.size;
-                    mound.scaleY *= mine.size;
-                    mines[i][3] = mound;
-                    mine.mound = mound;
-                }
-                var radius:Number = mine.size * 6.5;
-                gs.game.spatialHash.mapInArea(mine.px - radius,mine.py - radius,mine.px + radius,mine.py + radius,function(param1:Unit):void
-                {
-                    if(param1.team != mine.team && param1.pz == 0)
-                    {
-                        // debug.Log("Moving the ash is future dyz\'s problem lmaoo","#ff4040");
-                        gs.game.projectileManager.initNuke(mine.px,mine.py,param1.team.enemyTeam.statue,50,0.5,30 * 3);
-                        var nuke:Nuke = Nuke(getProjectile(5));
-                        var j:int = 0;
-                        while(j < 5)
-                        {
-                            var fire:FireOnTheGround = FireOnTheGround(getProjectile(j));
-                            var px:* = nuke.px - fire.px;
-                            var py:* = nuke.py - fire.py;
-                            fire.px = mine.px + px;
-                            fire.py = mine.py + py;
-                            j++;
-                        }
-                        nuke.px = mine[0];
-                        nuke.py = mine[1];
-                        nuke.x = nuke.px;
-                        nuke.y = nuke.py;
-                        mines.splice(mines.indexOf(mines[i]),1);
-                        removeProjectile(mine.mound);
-                    }
-                });
-                i++;
-            }
-        }
-
-        // useful functions that lessen work :)
-
-        private function mineobj(info:Array) : Object
-        {
-            var obj:Object = {
-                px: info[0],
-                py: info[1],
-                team: info[2],
-                direction: info[2].direction,
-                mound: info[3],
-                size: info[4]
-            };
-            return obj;
-        }
-
-        private function firewallobj(info:Array) : Object
-        {
-            var obj:Object = {
-                px: info[0],
-                team: info[1],
-                radius: info[2],
-                frame: info[3],
-                fireFrames: info[4],
-                fireDamage: info[5],
-                fires: info[6]
-            };
-            return obj;
-        }
-
-        private function getProjectile(num:int = 0) : *
-        {
-            if(gameScreen.game.projectileManager.projectiles.length == 0)
-            {
-                Debug.instance.error("No available projectiles to obtain. getProjectile()","ProjectilePlus");
-                return null;
-            }
-            var length:int = int(gameScreen.game.projectileManager.projectiles.length);
-            return gameScreen.game.projectileManager.projectiles[length - (1 + num)];
-        }
-
-        private function removeProjectile(projectile:Projectile) : void
-        {
-            projectile.px = -10;
-            return; // projectileMap ain't public, so gotta make do with what we got lel
-           
-            gameScreen.game.projectileManager.projectileMap[projectile.type].returnItem(projectile);
-            if(gameScreen.game.battlefield.contains(projectile))
-            {
-                gameScreen.game.battlefield.removeChild(projectile);
-            }
-            gameScreen.game.projectileManager.projectiles.splice(gameScreen.game.projectileManager.projectiles.indexOf(projectile),1);
+            return team.unitGroups[StringMap.getUnit(type)];
         }
     }
 }
@@ -1275,81 +838,12 @@ package com.brockw.stickwar.campaign.controllers.EasyController
     {
         private var _gameScreen:GameScreen;
 
-        private var frames:int = 0;
-
-        private var counter:int = 0;
-
-        private var overlay:MovieClip;
-
-
-        private var unitsAvailable:Array;
+        private var unitsAvailable:Array = [];
 
         public function CutScene(gs:GameScreen)
         {
             _gameScreen = gs;
-            unitsAvailable = [];
             super();
-        }
-
-        public function message(msg:InGameMessage, sec:int = 6, counter:Boolean = false) : void
-        {
-            if(Boolean(msg) && _gameScreen.contains(msg))
-            {
-                msg.update();
-                if(frames++ > 30 * sec && (sec != 0 || sec == null))
-                {
-                    _gameScreen.removeChild(msg);
-                }
-            }
-        }
-
-        public function startMsg(msg1:String, msg2:String = "", y:* = 0, sound:String = "", comp:Boolean = false) : InGameMessage
-        {
-            var msg:InGameMessage = new InGameMessage("",_gameScreen.game);
-            msg = new InGameMessage("",_gameScreen.game);
-            msg.x = _gameScreen.game.stage.stageWidth / 2;
-            msg.y = _gameScreen.game.stage.stageHeight / 4 - 75;
-            msg.scaleX *= 1.3;
-            msg.scaleY *= 1.3;
-            _gameScreen.addChild(msg);
-            msg.setMessage(msg1,msg2,y,sound,comp);
-            frames = 0;
-            return msg;
-        }
-
-        public function deleteMessage(msg:InGameMessage) : void
-        {
-            if(Boolean(msg) && _gameScreen.contains(msg))
-            {
-                _gameScreen.removeChild(msg);
-            }
-        }
-
-        public function addlayer() : void
-        {
-            this.overlay = new MovieClip();
-            this.overlay.graphics.beginFill(0,1);
-            this.overlay.graphics.drawRect(0,0,850,750);
-            _gameScreen.addChild(this.overlay);
-            this.overlay.alpha = 0;
-        }
-        
-        public function fadelayer(sec:int = 2, outcome:Boolean = true) : void
-        {
-            if(outcome) // Fading in
-            {
-                if (this.overlay.alpha < 1)
-                {
-                    this.overlay.alpha += (1 / (30 * sec));
-                }
-            }
-            else
-            {
-                if (this.overlay.alpha > 0)
-                {
-                    this.overlay.alpha -= (1 / (30 * sec));
-                }
-            }
         }
 
         public function follow(un:*) : void
@@ -1360,171 +854,49 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
             else if(un is int || un is Number)
             {
-                _gameScreen.game.targetScreenX = int(un);
+                _gameScreen.game.targetScreenX = int(un) - _gameScreen.game.map.screenWidth / 2;
             }
         }
 
-        public function infrontUnit(team:Team) : Unit
+        // Disables functionality for all hud elements that influence the game. 
+        public function disableUI() : void
         {
-            return team.forwardUnit;
-        }
+            var hud:MovieClip = _gameScreen.userInterface.hud.hud;
+            hud.economicDisplay.visible = false;
+            hud.economicDisplay.alpha = 0;
+            _gameScreen.userInterface.isGlobalsEnabled = false;
 
-        public function removelayer() : void
-        {
-            _gameScreen.removeChild(this.overlay);
-            counter = 0;
-        }
-
-        public function statelayer(outcome:Boolean = true) : Boolean
-        {
-            if(outcome)
+            if(hud.fastForward != null)
             {
-                return this.overlay.alpha >= 1;
+                hud.fastForward.visible = false;
             }
-            else if(!outcome)
+
+            for (var i:int in _gameScreen.team.unitsAvailable)
             {
-                return this.overlay.alpha <= 0;
+                unitsAvailable.push(i);
+                delete _gameScreen.team.unitsAvailable[i];
             }
         }
 
-        public function cleanUp(ui:Boolean = true) : void
+        // Enables functionality for all hud elements that influence the game. 
+        public function enableUI(ui:Boolean = true) : void
         {
-            var team:Team = _gameScreen.game.team;
-            var enemyTeam:Team = _gameScreen.game.team.enemyTeam;
-            // var unit:Unit = null;
-
-            team.gold = team.mana = 0;
-            enemyTeam.gold = enemyTeam.mana = 0;
-            team.cleanUpUnits();
-            enemyTeam.cleanUpUnits();
+            var hud:MovieClip = _gameScreen.userInterface.hud.hud;
             
-            if(ui)
+            hud.economicDisplay.visible = true;
+            hud.economicDisplay.alpha = 1;
+            _gameScreen.userInterface.isGlobalsEnabled = true;
+            if(hud.fastForward != null)
             {
-                var hud:MovieClip = _gameScreen.userInterface.hud.hud;
-                var i:int = 0;
-                hud.economicDisplay.visible = false;
-                hud.economicDisplay.alpha = 0;
-                _gameScreen.userInterface.isGlobalsEnabled = false;
-
-                if(hud.fastForward != null)
-                {
-                    hud.fastForward.visible = false;
-                }
-
-                for (var i:int in _gameScreen.team.unitsAvailable)
-                {
-                    unitsAvailable.push(i);
-                    delete _gameScreen.team.unitsAvailable[i];
-                }
+                hud.fastForward.visible = true;
             }
-        }
 
-        public function postCleanUp(ui:Boolean = true) : void
-        {
-            var team:Team = _gameScreen.game.team;
-            var enemyTeam:Team = _gameScreen.game.team.enemyTeam;
-            // var unit:Unit = null;
-
-            
-            
-            if(ui)
+            for(var i:int = 0; i < unitsAvailable.length; i++)
             {
-                var hud:MovieClip = _gameScreen.userInterface.hud.hud;
-                var i:int = 0;
-                hud.economicDisplay.visible = true;
-                hud.economicDisplay.alpha = 1;
-                _gameScreen.userInterface.isGlobalsEnabled = true;
-                if(hud.fastForward != null)
-                {
-                    hud.fastForward.visible = true;
-                }
-
-                while(i < unitsAvailable.length)
-                {
-                    _gameScreen.team.unitsAvailable[unitsAvailable[i]] = 1;
-                    i++;
-                }  
-            }
-        }
-
-        public function summonWall(team:Team, x:int = 0, direction:int = 1, maxHealth:int = 400, health:int = -1) : void
-        {
-            var wall:Wall = null;
-            var i:int = 0; 
-            (wall = team.addWall(x)).setConstructionAmount(1);
-            while(i < wall.wallParts.length)
-            {
-                var wallSpike:* = wall.wallParts[i];
-                wallSpike.scaleX *= direction;
+                _gameScreen.team.unitsAvailable[unitsAvailable[i]] = 1;
                 i++;
-            }
-            wall.maxHealth = maxHealth;
-            wall.health = (health != -1) ? health : maxHealth;
-            wall.healthBar.totalHealth = maxHealth;
-        }
-    }
-}
-package com.brockw.stickwar.campaign.controllers.EasyController
-{
-    import flash.display.*;
-    import flash.text.*;
-    import flash.ui.*;
-    
-    public class Draw
-    {
-
-        public static const screen_width:Number = 850;
-
-        public static const screen_height:Number = 700;
-
-        public static const width_center:Number = 425;
-
-        public static const height_center:Number = 350;
-
-        public function Draw()
-        {
-            super();
-        }
-
-        public static function createTextField(width:Number, height:Number, fontSize:int, color:uint) : TextField 
-        {
-            var textField:TextField = new TextField();
-            
-            textField.width = width;
-            textField.height = height;
-        
-            var textFormat:TextFormat = new TextFormat("Arial", int(fontSize), hexToDecimal(color));
-            textField.defaultTextFormat = textFormat;
-            textField.multiline = true;
-            textField.wordWrap = true;
-
-            textField.antiAliasType = AntiAliasType.ADVANCED;
-            textField.embedFonts = true;
-            
-            return textField;
-        }
-        
-        public static function createRectangle(width:Number, height:Number, color:String, transparency:Number) : Shape 
-        {
-            var rectangle:Shape = new Shape();
-            
-            rectangle.graphics.beginFill(hexToDecimal(color), transparency);
-            rectangle.graphics.drawRect(0, 0, width, height);
-            rectangle.graphics.endFill();
-            
-            return rectangle;
-        }
-
-        public static function hexToDecimal(hexColor:String) : uint
-        {
-            hexColor = hexColor.replace("#", "");
-            var red:uint = uint("0x" + hexColor.substr(0, 2));
-            var green:uint = uint("0x" + hexColor.substr(2, 2));
-            var blue:uint = uint("0x" + hexColor.substr(4, 2));
-            
-            var decimalColor:uint = (red << 16) | (green << 8) | blue;
-
-            return decimalColor;
+            }  
+            unitsAvailable = [];
         }
     }
 }
@@ -1540,6 +912,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
       {
          super();
       }
+
+      // TODO: Add fuzzy search.
       
       public static function unitNameToType(param1:String) : int
       {
@@ -1553,7 +927,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          {
             return Unit.U_SWORDWRATH;
          }
-         if(param1 == "archidon" || param1 == "archer" || param1 == "arch")
+         if(param1 == "archidon" || param1 == "archer" || param1 == "arch") // "I use arch btw"
          {
             return Unit.U_ARCHER;
          }
@@ -1786,118 +1160,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return "{Target Is Not a Unit}";
       }
 
-      public static function setUnitType(param1:Unit, param2:String) : void
-      {
-         if(param1.type == Unit.U_MINER)
-         {
-            param1.minerType = param2;
-         }
-         if(param1.type == Unit.U_SWORDWRATH)
-         {
-            param1.swordwrathType = param2;
-         }
-         if(param1.type == Unit.U_ARCHER)
-         {
-            param1.archerType = param2;
-         }
-         if(param1.type == Unit.U_SPEARTON)
-         {
-            param1.speartonType = param2;
-         }
-         if(param1.type == Unit.U_NINJA)
-         {
-            param1.ninjaType = param2;
-         }
-         if(param1.type == Unit.U_FLYING_CROSSBOWMAN)
-         {
-            param1.flyingCrossbowmanType = param2;
-         }
-         if(param1.type == Unit.U_MONK)
-         {
-            param1.monkType = param2;
-         }
-         if(param1.type == Unit.U_MAGIKILL)
-         {
-            param1.magikillType = param2;
-         }
-         if(param1.type == Unit.U_ENSLAVED_GIANT)
-         {
-            param1.enslavedgiantType = param2;
-         }
-         if(param1.type == Unit.U_CHAOS_MINER)
-         {
-            param1.chaosminerType = param2;
-         }
-         if(param1.type == Unit.U_BOMBER)
-         {
-            param1.bomberType = param2;
-         }
-         if(param1.type == Unit.U_WINGIDON)
-         {
-            param1.wingidonType = param2;
-         }
-         if(param1.type == Unit.U_SKELATOR)
-         {
-            param1.skelatorType = param2;
-         }
-         if(param1.type == Unit.U_DEAD)
-         {
-            param1.deadType = param2;
-         }
-         if(param1.type == Unit.U_CAT)
-         {
-            param1.catType = param2;
-         }
-         if(param1.type == Unit.U_KNIGHT)
-         {
-            param1.knightType = param2;
-         }
-         if(param1.type == Unit.U_MEDUSA)
-         {
-            param1.medusaType = param2;
-         }
-         if(param1.type == Unit.U_GIANT)
-         {
-            param1.giantType = param2;
-         }
-         if(param1.type == Unit.U_FIRE_ELEMENT)
-         {
-            param1.fireElementType = param2;
-         }
-         if(param1.type == Unit.U_EARTH_ELEMENT)
-         {
-            param1.earthElementType = param2;
-         }
-         if(param1.type == Unit.U_WATER_ELEMENT)
-         {
-            param1.waterElementType = param2;
-         }
-         if(param1.type == Unit.U_AIR_ELEMENT)
-         {
-            param1.airElementType = param2;
-         }
-         if(param1.type == Unit.U_LAVA_ELEMENT)
-         {
-            param1.lavaElementType = param2;
-         }
-         if(param1.type == Unit.U_HURRICANE_ELEMENT)
-         {
-            param1.hurricaneElementType = param2;
-         }
-         if(param1.type == Unit.U_FIRESTORM_ELEMENT)
-         {
-            param1.infernosType = param2;
-         }
-         if(param1.type == Unit.U_SCORPION_ELEMENT)
-         {
-            param1.scorpType = param2;
-         }
-         if(param1.type == Unit.U_CHROME_ELEMENT)
-         {
-            param1.chromeElementType = param2;
-         }
-      }
-
       public static function unitTypeToXML(param1:int, param2:StickWar) : XMLList
       {
          if(param1 == Unit.U_MINER)
@@ -2018,6 +1280,32 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          }
          return null;
       }
+
+      // Gets unit int with whatever data you give it.
+      public function getUnit(data:*) : * 
+      {
+         if(data is String)
+         {
+            return unitNameToType(data);
+         }
+         else if(data is Int)
+         {
+            return data;
+         }
+         else if(data is Array)
+         {
+            var arrayToReturn:Array = [];
+            for(int i = 0; i < data.length; i++)
+            {
+               arrayToReturn.push(getUnit(data[i]));
+            }
+
+            return arrayToReturn;
+         }
+
+         debug.error("Type " + data + " is not supported.", "StringMap");
+         return null;
+      }
    }
 }
 package com.brockw.stickwar.campaign.controllers.EasyController
@@ -2053,7 +1341,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             super();
             Loader.instance = this;
             this.stringMap = new StringMap();
-            this.draw = new Draw();
             this._gameScreen = gameScreen;
         }
     }

@@ -25,7 +25,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          {
             return Unit.U_SWORDWRATH;
          }
-         if(param1 == "archidon" || param1 == "archer" || param1 == "arch")
+         if(param1 == "archidon" || param1 == "archer" || param1 == "arch") // "I use arch btw"
          {
             return Unit.U_ARCHER;
          }

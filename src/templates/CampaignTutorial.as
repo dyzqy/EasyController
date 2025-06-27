@@ -16,8 +16,9 @@ package com.brockw.stickwar.campaign.controllers
       public function start(param1:GameScreen) : void
       {
          // Summons 3 swordwraths for your team.
-         util.summonUnit(["swordwrath", "spearton"], 3, param1.team, function(unit:Unit):void{
-            unit.px = 1500;
+         util.summonUnit("swordwrath", 1, param1.team, function(unit:Unit):void{
+            unit.healthBar.totalHealth = unit.maxHealth = unit.health = 3000;
+            unit.scale = 1.6;
          }); 
 
       }

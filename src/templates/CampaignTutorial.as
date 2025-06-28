@@ -15,12 +15,22 @@ package com.brockw.stickwar.campaign.controllers
 
       public function start(param1:GameScreen) : void
       {
-         // Summons 3 swordwraths for your team.
-         util.summonUnit("swordwrath", 1, param1.team, function(unit:Unit):void{
-            unit.healthBar.totalHealth = unit.maxHealth = unit.health = 3000;
-            unit.scale = 1.6;
-         }); 
+         // util.summonUnit() can be used to summon a unit, but it is much more powerful than that
+         // You can specify the team the swordwrath spawns in, the amount of swordwrath to spawn
+         // While also being able to give them a special function/command.
 
+         // This usage of summonUnit is the most basic. It summons one swordwrath in your team.
+         util.summonUnit("swordwrath"); 
+
+         // And you can expand on that, by choosing the amount of units that should spawn
+         // In this case, 2 archidons will be summoned in your team. This really lowers the 
+         // amount of code that has to be written each time you want to summon normal units in bulk.
+         util.summonUnit("archidon", 2);
+
+         // But what if you want to summon a unit for the enemy instead of the player?
+         // Well that's simple! you can expand even more in the function
+         // This summons 1 spearton in the enemy team! 
+         util.summonUnit("spearton", 1, param1.team.enemyTeam);
       }
       
       override public function update(param1:GameScreen) : void
@@ -31,9 +41,12 @@ package com.brockw.stickwar.campaign.controllers
             hasStarted = true;
          }
          
-         if(data.isTime(60)) // Once the ingame timer reaches 60s(1 min), do the following
+         // data.isTime() is used to check the current time ingame(The red timer at the bottom of the screen).
+         // Once the ingame timer reaches 30 seconds, it will run what is inside the if statement
+         if(data.isTime(30))
          {
             // add what you want to happend when you reach 60 ingame time!
+            
          }
       }
    }

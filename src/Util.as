@@ -28,7 +28,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     //  # Unit Related Functions. 
 
-        // TODO: test if this works.
         // Summons unit(s) of a specified team.
         // "unitData" A specified type of unit or an array of unit types.
         // "copies" How many each specified unit should be spawned.
@@ -86,6 +85,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         }
 
         // TODO: Test if this works.
+        // Allows a unit(s) of other empires to be summoned.
+        // "units" A specified type of unit or an array of unit types.
+        // "team" the team to register the unit to.
         public function registerUnit(units:*, team:Team) : void
         {
             var level:* = this._gameScreen.main.campaign.getCurrentLevel();
@@ -95,7 +97,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             {
                 for(var i:int = 0; i < units.length; i++)
                 {
-                    registerUnits(units, team);
+                    registerUnits(units[i], team);
                 }
             }
             else if(units is int)
@@ -109,6 +111,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                     unit.team = team;
                     unit.setBuilding();
                     // TODO: Find a way to set the correct unit building. unit.building is public.
+                    // Might be null tho if the team isn't the supposed team? 
                     team.unitInfo[currentUnit].push((team.buildings["BankBuilding"]).type);
                     team.unitGroups[currentUnit] = [];
                     this._gameScreen.game.unitFactory.returnUnit(currentUnit, unit);

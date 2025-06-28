@@ -45,8 +45,10 @@ package com.brockw.stickwar.campaign.controllers
          // Once the ingame timer reaches 30 seconds, it will run what is inside the if statement
          if(data.isTime(30))
          {
-            // add what you want to happend when you reach 60 ingame time!
-            
+            // With everything we have learnt so far,
+            // Why don't you try to spawn 1 meric on your team? :D
+
+            // TIP: you only need one paramater!
          }
       }
    }

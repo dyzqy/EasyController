@@ -106,7 +106,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return number % 2 != 0;
       }
 
-      // TODO: There might be a better way to do this. If there is, do it.
+      // TODO: Add description of what it does and of its paramaters
+      // There is prob also a better way to do this
       public function isTime(num:Number, doafter:Boolean = false) : Boolean
       {
          // Odd numbers are not devidable by 2
@@ -495,7 +496,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     //  # Unit Related Functions. 
 
-        // TODO: test if this works.
         // Summons unit(s) of a specified team.
         // "unitData" A specified type of unit or an array of unit types.
         // "copies" How many each specified unit should be spawned.
@@ -553,6 +553,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         }
 
         // TODO: Test if this works.
+        // Allows a unit(s) of other empires to be summoned.
+        // "units" A specified type of unit or an array of unit types.
+        // "team" the team to register the unit to.
         public function registerUnit(units:*, team:Team) : void
         {
             var level:* = this._gameScreen.main.campaign.getCurrentLevel();
@@ -562,7 +565,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             {
                 for(var i:int = 0; i < units.length; i++)
                 {
-                    registerUnits(units, team);
+                    registerUnits(units[i], team);
                 }
             }
             else if(units is int)
@@ -576,6 +579,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                     unit.team = team;
                     unit.setBuilding();
                     // TODO: Find a way to set the correct unit building. unit.building is public.
+                    // Might be null tho if the team isn't the supposed team? 
                     team.unitInfo[currentUnit].push((team.buildings["BankBuilding"]).type);
                     team.unitGroups[currentUnit] = [];
                     this._gameScreen.game.unitFactory.returnUnit(currentUnit, unit);
@@ -766,6 +770,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
     //   # Private functions place :)
 
         // TODO: Rework this. It does its job too goofily.
+        // + I don't even remember what it does lol
         private function unitsreducedcode(type:*, func:Function, extrateam:Team = null) : void
         {
             var un:* = null;
@@ -1307,14 +1312,14 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 }
 package com.brockw.stickwar.campaign.controllers.EasyController
 {
-    import com.brockw.stickwar.GameScreen;
     import com.brockw.stickwar.campaign.controllers.EasyController.*;
+    import com.brockw.stickwar.GameScreen;
 
     public class Loader
     {
         public static const version:String = "1.3.0";
 
-        public static const date:String = "27-06-2024";
+        public static const date:String = "28-06-2024";
 
         public static const developer:String = "dyzqy";
 

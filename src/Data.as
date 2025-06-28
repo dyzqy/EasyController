@@ -69,7 +69,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return number % 2 != 0;
       }
 
-      // TODO: There might be a better way to do this. If there is, do it.
+      // TODO: Add description of what it does and of its paramaters
+      // There is prob also a better way to do this
       public function isTime(num:Number, doafter:Boolean = false) : Boolean
       {
          // Odd numbers are not devidable by 2

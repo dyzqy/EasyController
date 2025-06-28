@@ -302,6 +302,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
     //   # Private functions place :)
 
         // TODO: Rework this. It does its job too goofily.
+        // + I don't even remember what it does lol
         private function unitsreducedcode(type:*, func:Function, extrateam:Team = null) : void
         {
             var un:* = null;

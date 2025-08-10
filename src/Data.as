@@ -65,13 +65,18 @@ package com.brockw.stickwar.campaign.controllers.EasyController
       }
 
       // TODO: Add description of what it does and of its paramaters
-      /* 10/08/2025 dyzqy: Added a much more accurate way to check time, even if fast forward is on. */
+      /* 10/08/2025 dyzqy: Added a much more accurate way to check time, even if fast forward is on. 
+       * Re-edited file to check if game is fast-forwarded before doing the extra calcs
+       */
       public function isTime(num:Number, doafter:Boolean = false) : Boolean
       {
          var targetFrame:int = int(num * 30);
          var currentFrame:int = this._gameScreen.game.frame;
 
-         currentFrame = currentFrame - currentFrame % 2 + targetFrame % 2;
+         if(this._gameScreen.isFastForward)
+         {
+            currentFrame = currentFrame - currentFrame % 2 + targetFrame % 2;
+         }
 
          return currentFrame == targetFrame;
       }

@@ -41,7 +41,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
       // Returns amount of all units or of a specfic type(s) of unit(s).
       public function unitAmount(team:Team, unitData:* = null) : int
       {
-         if(unitName == null)
+         if(unitData == null)
          {
             return team.units.length;
          }
@@ -53,7 +53,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                var length:int = 0;
                for(var i:int = 0; i < units.length; i++)
                {
-                  length += unitAmount(team, units)
+                  length += unitAmount(team, units[i])
                }
                return length;
             }
@@ -64,42 +64,16 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          }
       }
 
-      private static function isOdd(number:int) : Boolean 
-      {
-         return number % 2 != 0;
-      }
-
       // TODO: Add description of what it does and of its paramaters
-      // There is prob also a better way to do this
+      /* 10/08/2025 dyzqy: Added a much more accurate way to check time, even if fast forward is on. */
       public function isTime(num:Number, doafter:Boolean = false) : Boolean
       {
-         // Odd numbers are not devidable by 2
-         var frames:int = int(num * 30);
-         var gameFrames:* = this._gameScreen.game.frame;
-         var result:Boolean = gameFrames == frames;
+         var targetFrame:int = int(num * 30);
+         var currentFrame:int = this._gameScreen.game.frame;
 
-         if(doafter)
-         {
-            return gameFrames > frames;
-         }
-         
-         if(this._gameScreen.isFastForward)
-         {
-            if(isOdd(gameFrames) && isOdd(frames))
-            {
-               result = gameFrames == frames;
-            }
-            else if(!isOdd(gameFrames) && !isOdd(frames))
-            {
-               result = gameFrames == frames;
-            }
-            else
-            {
-               result = gameFrames - 1 == frames;
-            }
-         }
+         currentFrame = currentFrame - currentFrame % 2 + targetFrame % 2;
 
-         return result;
+         return currentFrame == targetFrame;
       }
 
       public function campaignInfo(infType:String) : *

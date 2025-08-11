@@ -112,10 +112,10 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return null;
       }
 
-      // TODO: Make this use brock's random number generator instead of AS's.
-      public function random(min:Number, max:Number) : *
+      /* 11/08/2025 dyzqy: Random now uses the game's built in random number generator instead of the unreliable AS Math one.*/
+      public function random(min:Number, max:Number) : int
       {
-         return min + Math.floor(Math.random() * (max - min + 1))
+         return int(min + this._gameScreen.game.random.nextInt() % (max + 1));
       }
    }
 }

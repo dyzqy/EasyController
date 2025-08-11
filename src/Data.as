@@ -53,7 +53,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                var length:int = 0;
                for(var i:int = 0; i < units.length; i++)
                {
-                  length += unitAmount(team, units[i])
+                  length += unitAmount(team, units[i]);
                }
                return length;
             }

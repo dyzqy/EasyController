@@ -5,7 +5,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class Loader
     {
-        public static const version:String = "1.3.0";
+        public static const version:String = "1.3.1";
 
         public static const date:String = "11-08-2025";
 
@@ -18,7 +18,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public var isBeta:Boolean = true;
 
-        public var isDev:Boolean = false;
+        public var isDev:Boolean = true;
 
         public var isSW2:Boolean = false; 
 

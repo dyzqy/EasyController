@@ -17,7 +17,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             _gameScreen = gs;
             super();
         }
-
+        
+        /* 13/08/2025 dyzqy: Added error message when you input an invalid parameter type. */
         public function follow(un:*) : void
         {
             if(un is Unit)
@@ -27,6 +28,10 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             else if(un is int || un is Number)
             {
                 _gameScreen.game.targetScreenX = int(un) - _gameScreen.game.map.screenWidth / 2;
+            }
+            else
+            {
+                Debug.instance.error("Invalid parameter for 'follow()'. The parameter must be either a Unit or a Number.", "CutScene");
             }
         }
 
@@ -66,7 +71,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             for(var i:int = 0; i < unitsAvailable.length; i++)
             {
                 _gameScreen.team.unitsAvailable[unitsAvailable[i]] = 1;
-                i++;
+                /* 13/08/2023 dyzqy: Fixed oversight, incrementing "i" twice. */
             }  
             unitsAvailable = [];
         }

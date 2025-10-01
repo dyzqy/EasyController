@@ -13,8 +13,12 @@ package com.brockw.stickwar.campaign.controllers.EasyController
     import flash.text.*;
     import flash.display.*;
 
+    // import flash.net.FileReference;
+
     public class Util
     {
+        public var preferredTeam:Team;
+
         private var _gameScreen:GameScreen;
 
         private var debug:Debug;
@@ -24,6 +28,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             super();
             this._gameScreen = gameScreen;
             this.debug = Debug.instance;
+
+            this.preferredTeam = gameScreen.team;
         }
 
     //  # Unit Related Functions. 
@@ -38,7 +44,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         {
             if(teamSpawn == null)
             {
-                teamSpawn = _gameScreen.team;
+                teamSpawn = preferredTeam;
             }
 
             var units:Array = [];
@@ -90,6 +96,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         // "team" the team to register the unit to.
         public function registerUnit(units:*, team:Team) : void
         {
+            if(team == null) team = preferredTeam;
+
             var level:* = this._gameScreen.main.campaign.getCurrentLevel();
             units = StringMap.getUnit(units);
 
@@ -123,20 +131,43 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
         }
 
-        // TODO: add Hide unit button in hud function
-        // ^ Both of these can be done in same function(?)
-        // TODO: add Show unit button in hud function
+        // TODO: test & make description for function and its paramaters
+        public function toggleUnitButton(unitData:*, team:Team) : void
+        {
+            if(team == null)
+            {
+                team = this.preferedTeam;
+            }
 
+            var units:* = StringMap.getUnit(unitData);
 
-        // TODO: rework killUnit so destroy is actually reliable.
-        // public function killUnit(un:Unit, destroy:Boolean = false) : void
-        // {
-        //     if(destroy)
-        //     {
-        //         un.px = 10000;
-        //     }
-        //     un.kill();
-        // }
+            if(units is Array)
+            {
+                for(var i:int = 0; i < units.length; i++)
+                {
+                    toggleUnitButton(units[i]);
+                }
+            }
+            else if(units is int)
+            {
+                var unit:int = units;
+                if(team.unitsAvailable[unit] == null)
+                {
+                    team.unitsAvailable[unit] = 1; 
+                }
+                else
+                {
+                    delete team.unitsAvailable[unit];
+                }
+            }
+        }
+
+        // TODO: test if it works.
+        public function deleteUnit(un:Unit) : void
+        {
+            un.kill();
+            un.timeOfDeath = 30 * 20 + 1;
+        }
 
         // TODO: Verify if this can run in multiplayer side 
         public function hold(unit:Unit, x:Number = 0, y:Number = 0) : void
@@ -148,6 +179,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             move.arg1 = y; 
             move.units.push(unit.id); 
             move.execute(_gameScreen.game);
+
+            // var move:UnitMove = new UnitMove();
+            // move.fromString([unit.team.id, this._gameScreen.game.frame, ]);
         }
 
         // TODO: Verify if this can run in multiplayer side 
@@ -205,28 +239,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }, extrateam);
         }
 
-        // TODO: Use another way to do this?
-        // public function passiveCure(type:*, timer:Number) : void
-        // {
-        //     var un:* = null;
-        //     if(type is Team)
-        //     {
-        //         for each(un in type.units)
-        //         {
-        //             loop(timer, function():void{
-        //                 un.cure();
-        //             });
-        //         }
-        //     }
-        //     else if(type is Unit)
-        //     {
-        //         var un:Unit = type;
-        //         loop(timer, function():void{
-        //             un.cure();
-        //         });
-        //     }
-        // }
-
     //  # Utility Related Functions. 
 
         // TODO: Either fix or remove.
@@ -251,29 +263,10 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         //     team.unitsAvailable[unit2] = 1;
         // }
 
-        // TODO: Rework reinforcements code.
-        // public function reinforcements(health:int, maxHealth:int, team:Team, info:* = null, fullHeal:Boolean = true, extra:Boolean = false) : void
-        // {
-        //     if(team.statue.health <= health && team.statue.maxHealth != maxHealth && !extra)
-        //     {
-        //         if(info is Function)
-        //         {
-        //             info();
-        //         }
-        //         else
-        //         {
-        //             debug.error("Input for 4th paramater must be a Function. 'reinforcements()'", "Util");
-        //         }
-                
-        //         team.statue.health = fullHeal ? maxHealth : (team.statue.maxHealth / team.statue.health - 1) * maxHealth;
-        //         team.statue.maxHealth = maxHealth;
-        //         team.statue.healthBar.totalHealth = maxHealth;
-        //     }
-        // }
-
         // TODO: Decide if to keep these 2 functions below? They do not abide by the DIY "rule" I set. 
         public function changeStatue(team:Team, statue:String) : void
         {
+            if(team == null) team = preferredTeam;
             team.statueType = statue.toLowerCase();
         }
 
@@ -300,6 +293,17 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         }
 
     //   # Private functions place :)
+
+        // TODO: make it so if you are not on Dev, do not allow to save file.
+        // public function saveFile(value:String, name:String = "data.txt") : void
+        // {
+        //     if(!Loader.instance.isDev)
+        //     {
+
+        //     }
+        //     var file:FileReference = new FileReference();
+        //     file.save(value, name);
+        // }
 
         // TODO: Rework this. It does its job too goofily.
         // + I don't even remember what it does lol

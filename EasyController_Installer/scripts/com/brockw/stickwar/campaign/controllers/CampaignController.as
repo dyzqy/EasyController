@@ -78,7 +78,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
       // Returns amount of all units or of a specfic type(s) of unit(s).
       public function unitAmount(team:Team, unitData:* = null) : int
       {
-         if(unitName == null)
+         if(unitData == null)
          {
             return team.units.length;
          }
@@ -90,7 +90,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                var length:int = 0;
                for(var i:int = 0; i < units.length; i++)
                {
-                  length += unitAmount(team, units)
+                  length += unitAmount(team, units[i]);
                }
                return length;
             }
@@ -101,42 +101,21 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          }
       }
 
-      private static function isOdd(number:int) : Boolean 
-      {
-         return number % 2 != 0;
-      }
-
       // TODO: Add description of what it does and of its paramaters
-      // There is prob also a better way to do this
+      /* 10/08/2025 dyzqy: Added a much more accurate way to check time, even if fast forward is on. 
+       * Re-edited file to check if game is fast-forwarded before doing the extra calcs
+       */
       public function isTime(num:Number, doafter:Boolean = false) : Boolean
       {
-         // Odd numbers are not devidable by 2
-         var frames:int = int(num * 30);
-         var gameFrames:* = this._gameScreen.game.frame;
-         var result:Boolean = gameFrames == frames;
+         var targetFrame:int = int(num * 30);
+         var currentFrame:int = this._gameScreen.game.frame;
 
-         if(doafter)
-         {
-            return gameFrames > frames;
-         }
-         
          if(this._gameScreen.isFastForward)
          {
-            if(isOdd(gameFrames) && isOdd(frames))
-            {
-               result = gameFrames == frames;
-            }
-            else if(!isOdd(gameFrames) && !isOdd(frames))
-            {
-               result = gameFrames == frames;
-            }
-            else
-            {
-               result = gameFrames - 1 == frames;
-            }
+            currentFrame = currentFrame - currentFrame % 2 + targetFrame % 2;
          }
 
-         return result;
+         return currentFrame == targetFrame;
       }
 
       public function campaignInfo(infType:String) : *
@@ -170,10 +149,10 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return null;
       }
 
-      // TODO: Make this use brock's random number generator instead of AS's.
-      public function random(min:Number, max:Number) : *
+      /* 11/08/2025 dyzqy: Random now uses the game's built in random number generator instead of the unreliable AS Math one.*/
+      public function random(min:Number, max:Number) : int
       {
-         return min + Math.floor(Math.random() * (max - min + 1))
+         return int(min + this._gameScreen.game.random.nextInt() % (max + 1));
       }
    }
 }
@@ -477,12 +456,16 @@ package com.brockw.stickwar.campaign.controllers.EasyController
     import com.brockw.stickwar.engine.Team.*;
     import com.brockw.stickwar.engine.multiplayer.moves.*;
     import com.brockw.stickwar.engine.units.*;
+
+    import flash.net.FileReference;
     import flash.utils.*;
     import flash.text.*;
     import flash.display.*;
 
     public class Util
     {
+        public var preferredTeam:Team;
+
         private var _gameScreen:GameScreen;
 
         private var debug:Debug;
@@ -492,6 +475,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             super();
             this._gameScreen = gameScreen;
             this.debug = Debug.instance;
+
+            this.preferredTeam = gameScreen.team;
         }
 
     //  # Unit Related Functions. 
@@ -591,20 +576,43 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
         }
 
-        // TODO: add Hide unit button in hud function
-        // ^ Both of these can be done in same function(?)
-        // TODO: add Show unit button in hud function
+        // TODO: test & make description for function and its paramaters
+        public function toggleUnitButton(unitData:*, team:Team) : void
+        {
+            if(team == null)
+            {
+                team = this.preferedTeam;
+            }
 
+            var units:* = StringMap.getUnit(unitData);
 
-        // TODO: rework killUnit so destroy is actually reliable.
-        // public function killUnit(un:Unit, destroy:Boolean = false) : void
-        // {
-        //     if(destroy)
-        //     {
-        //         un.px = 10000;
-        //     }
-        //     un.kill();
-        // }
+            if(units is Array)
+            {
+                for(var i:int = 0; i < units.length; i++)
+                {
+                    toggleUnitButton(units[i]);
+                }
+            }
+            else if(units is int)
+            {
+                var unit:int = units;
+                if(team.unitsAvailable[unit] == null)
+                {
+                    team.unitsAvailable[unit] = 1; 
+                }
+                else
+                {
+                    delete team.unitsAvailable[unit];
+                }
+            }
+        }
+
+        // TODO: test if it works.
+        public function deleteUnit(un:Unit) : void
+        {
+            un.kill();
+            un.timeOfDeath = 30 * 20 + 1;
+        }
 
         // TODO: Verify if this can run in multiplayer side 
         public function hold(unit:Unit, x:Number = 0, y:Number = 0) : void
@@ -616,6 +624,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             move.arg1 = y; 
             move.units.push(unit.id); 
             move.execute(_gameScreen.game);
+
+            // var move:UnitMove = new UnitMove();
+            // move.fromString([unit.team.id, this._gameScreen.game.frame, ]);
         }
 
         // TODO: Verify if this can run in multiplayer side 
@@ -769,6 +780,13 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     //   # Private functions place :)
 
+        // TODO: make it so if you are on Dev, do not allow to save file.
+        public function saveFile(value:String, name:String = "data.txt") : void
+        {
+            var file:FileReference = new FileReference();
+            file.save(value, name);
+        }
+
         // TODO: Rework this. It does its job too goofily.
         // + I don't even remember what it does lol
         private function unitsreducedcode(type:*, func:Function, extrateam:Team = null) : void
@@ -828,6 +846,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         }
     }
 }
+
 package com.brockw.stickwar.campaign.controllers.EasyController
 {
     import com.brockw.stickwar.GameScreen;
@@ -838,6 +857,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class CutScene
     {
+        
+
         private var _gameScreen:GameScreen;
 
         private var unitsAvailable:Array = [];
@@ -847,7 +868,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             _gameScreen = gs;
             super();
         }
-
+        
+        /* 13/08/2025 dyzqy: Added error message when you input an invalid parameter type. */
         public function follow(un:*) : void
         {
             if(un is Unit)
@@ -857,6 +879,10 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             else if(un is int || un is Number)
             {
                 _gameScreen.game.targetScreenX = int(un) - _gameScreen.game.map.screenWidth / 2;
+            }
+            else
+            {
+                Debug.instance.error("Invalid parameter for 'follow()'. The parameter must be either a Unit or a Number.", "CutScene");
             }
         }
 
@@ -896,7 +922,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             for(var i:int = 0; i < unitsAvailable.length; i++)
             {
                 _gameScreen.team.unitsAvailable[unitsAvailable[i]] = 1;
-                i++;
+                /* 13/08/2023 dyzqy: Fixed oversight, incrementing "i" twice. */
             }  
             unitsAvailable = [];
         }
@@ -910,38 +936,76 @@ package com.brockw.stickwar.campaign.controllers.EasyController
    
    public class StringMap
    {
+      private static var unitNames:Array = [
+      "miner",
+      "swordwrath", 
+      "archidon", 
+      "spearton", 
+      "ninja", "shadowrath", 
+      "flyingcrossbowman", "albowtross", 
+      "monk", "meric", 
+      "magikill", 
+      "enslavedgiant",
+      "chaosminer", "enslavedminer",
+      "bomber",
+      "wingidon", "eclipsor",
+      "skeletalmage", "marrowkai",
+      "dead",
+      "cat", "crawler",
+      "juggerknight",
+      "medusa",
+      "giant",
+      "earthelement",
+      "waterelement",
+      "fireelement",
+      "airelement",
+      "lavaelement", "charrog",
+      "hurricaneelement", "cycloid",
+      "firestormelement", "infernos",
+      "treeelement", "treature",
+      "scorpion",
+      "chromeelement", "v",
+      "minerelement", "chomper"
+      ];
+
       public function StringMap()
       {
          super();
       }
-
-      // TODO: Add fuzzy search.
       
       public static function unitNameToType(param1:String) : int
       {
-        param1 = param1.toLowerCase();
-        param1 = param1.split(" ").join("");
+         param1 = param1.toLowerCase();
+         param1 = param1.split(" ").join("");
+         // Get the best match from fuzzy search
+         
+         var searchResults:Array = fuzzySearch(param1, unitNames);
+         if (searchResults.length > 0) 
+         {
+            param1 = searchResults[0]; // Use the best match
+         }
+
          if(param1 == "miner")
          {
             return Unit.U_MINER;
          }
-         if(param1 == "swordwrath" || param1 == "sword" || param1 == "swordman")
+         if(param1 == "swordwrath")
          {
             return Unit.U_SWORDWRATH;
          }
-         if(param1 == "archidon" || param1 == "archer" || param1 == "arch") // "I use arch btw"
+         if(param1 == "archidon")
          {
             return Unit.U_ARCHER;
          }
-         if(param1 == "spearton" || param1 == "spear")
+         if(param1 == "spearton")
          {
             return Unit.U_SPEARTON;
          }
-         if(param1 == "ninja" || param1 == "shadow" || param1 == "shadowrath" || param1 == "shadowwrath")
+         if(param1 == "ninja" || param1 == "shadowrath")
          {
             return Unit.U_NINJA;
          }
-         if(param1 == "flyingcrossbowman" || param1 == "albowtross" || param1 == "albow" || param1 == "crossbowman")
+         if(param1 == "flyingcrossbowman" || param1 == "albowtross")
          {
             return Unit.U_FLYING_CROSSBOWMAN;
          }
@@ -949,43 +1013,43 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          {
             return Unit.U_MONK;
          }
-         if(param1 == "magikill" || param1 == "magi" || param1 == "magik")
+         if(param1 == "magikill")
          {
             return Unit.U_MAGIKILL;
          }
-         if(param1 == "enslavedgiant" || param1 == "egiant")
+         if(param1 == "enslavedgiant")
          {
             return Unit.U_ENSLAVED_GIANT;
          }
-         if(param1 == "chaosminer" || param1 == "minerchaos" || param1 == "cminer" || param1 == "minerc" || param1 == "enslavedminer" || param1 == "eminer")
+         if(param1 == "chaosminer" || param1 == "enslavedminer")
          {
             return Unit.U_CHAOS_MINER;
          }
-         if(param1 == "bomber" || param1 == "bomb")
+         if(param1 == "bomber")
          {
             return Unit.U_BOMBER;
          }
-         if(param1 == "wingadon" || param1 == "eclipsor" || param1 == "wing" || param1 == "eclips")
+         if(param1 == "wingadon" || param1 == "eclipsor")
          {
             return Unit.U_WINGIDON;
          }
-         if(param1 == "skelatalmage" || param1 == "skele" || param1 == "marrowkai" || param1 == "marrow")
+         if(param1 == "skelatalmage" || param1 == "marrowkai")
          {
             return Unit.U_SKELATOR;
          }
-         if(param1 == "dead" || param1 == "ded")
+         if(param1 == "dead")
          {
             return Unit.U_DEAD;
          }
-         if(param1 == "cat" || param1 == "crawler" || param1 == "crawl")
+         if(param1 == "cat" || param1 == "crawler")
          {
             return Unit.U_CAT;
          }
-         if(param1 == "knight" || param1 == "juggerknight" || param1 == "jugg")
+         if(param1 == "juggerknight")
          {
             return Unit.U_KNIGHT;
          }
-         if(param1 == "medusa" || param1 == "medu")
+         if(param1 == "medusa")
          {
             return Unit.U_MEDUSA;
          }
@@ -993,51 +1057,54 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          {
             return Unit.U_GIANT;
          }
-         if(param1 == "fireelement" || param1 == "fireele" || param1 == "fire")
+         if(!Loader.instance.isSW2)
          {
-            return Unit.U_FIRE_ELEMENT;
+            if(param1 == "fireelement")
+            {
+               return Unit.U_FIRE_ELEMENT;
+            }
+            if(param1 == "earthelement")
+            {
+               return Unit.U_EARTH_ELEMENT;
+            }
+            if(param1 == "waterelement")
+            {
+               return Unit.U_WATER_ELEMENT;
+            }
+            if(param1 == "airelement")
+            {
+               return Unit.U_AIR_ELEMENT;
+            }
+            if(param1 == "lavaelement"|| param1 == "charrog")
+            {
+               return Unit.U_LAVA_ELEMENT;
+            }
+            if(param1 == "hurricaneelement" || param1 == "cycloid")
+            {
+               return Unit.U_HURRICANE_ELEMENT;
+            }
+            if(param1 == "firestormelement" || param1 == "infernos")
+            {
+               return Unit.U_FIRESTORM_ELEMENT;
+            }
+            if(param1 == "treeelement" || param1 == "treasure")
+            {
+               return Unit.U_TREE_ELEMENT;
+            }
+            if(param1 == "scorpion")
+            {
+               return Unit.U_SCORPION_ELEMENT;
+            }
+            if(param1 == "chromeelement"|| param1 == "v")
+            {
+               return Unit.U_CHROME_ELEMENT;
+            }
+            if(param1 == "minerelement" || param1 == "chomper")
+            {
+               return Unit.U_MINER_ELEMENT;
+            }
          }
-         if(param1 == "earthelement" || param1 == "earthele" || param1 == "earth")
-         {
-            return Unit.U_EARTH_ELEMENT;
-         }
-         if(param1 == "waterelement" || param1 == "waterele" || param1 == "water")
-         {
-            return Unit.U_WATER_ELEMENT;
-         }
-         if(param1 == "airelement" || param1 == "airele" || param1 == "air")
-         {
-            return Unit.U_AIR_ELEMENT;
-         }
-         if(param1 == "lavaelement" || param1 == "lavaele" || param1 == "charrog" || param1 == "lava")
-         {
-            return Unit.U_LAVA_ELEMENT;
-         }
-         if(param1 == "hurricaneelement" || param1 == "hurricaneele" || param1 == "cycloid" || param1 == "hurricane")
-         {
-            return Unit.U_HURRICANE_ELEMENT;
-         }
-         if(param1 == "firestormelement" || param1 == "firestormele" || param1 == "infernos" || param1 == "firestorm")
-         {
-            return Unit.U_FIRESTORM_ELEMENT;
-         }
-         if(param1 == "treeelement" || param1 == "treeele" || param1 == "treasure" || param1 == "tree")
-         {
-            return Unit.U_TREE_ELEMENT;
-         }
-         if(param1 == "scorpionelement" || param1 == "scorpionele" || param1 == "scorpion" || param1 == "scorp")
-         {
-            return Unit.U_SCORPION_ELEMENT;
-         }
-         if(param1 == "chromeelement" || param1 == "chromeele" || param1 == "v" || param1 == "chrome")
-         {
-            return Unit.U_CHROME_ELEMENT;
-         }
-         if(param1 == "minerelement" || param1 == "minerele" || param1 == "chomper" || param1 == "chomp" || param1 == "eminer")
-         {
-            return Unit.U_MINER_ELEMENT;
-         }
-         Debug.instance.error("No match for " + param1, "StringMap")
+         // Debug.instance.error("No match for " + param1, "StringMap");
          return -1;
       }
       
@@ -1115,51 +1182,54 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          {
             return "Giant";
          }
-         if(param1 == Unit.U_FIRE_ELEMENT)
+         if(!Loader.instance.isSW2)
          {
-            return "Fire Elemental";
+            if(param1 == Unit.U_FIRE_ELEMENT)
+            {
+               return "Fire Elemental";
+            }
+            if(param1 == Unit.U_EARTH_ELEMENT)
+            {
+               return "Earth Elemental";
+            }
+            if(param1 == Unit.U_WATER_ELEMENT)
+            {
+               return "Water Elemental";
+            }
+            if(param1 == Unit.U_AIR_ELEMENT)
+            {
+               return "Air Elemental";
+            }
+            if(param1 == Unit.U_LAVA_ELEMENT)
+            {
+               return "Charrog";
+            }
+            if(param1 == Unit.U_HURRICANE_ELEMENT)
+            {
+               return "Cycloid";
+            }
+            if(param1 == Unit.U_FIRESTORM_ELEMENT)
+            {
+               return "Infernos";
+            }
+            if(param1 == Unit.U_TREE_ELEMENT)
+            {
+               return "Treature";
+            }
+            if(param1 == Unit.U_SCORPION_ELEMENT)
+            {
+               return "Scorpion";
+            }
+            if(param1 == Unit.U_CHROME_ELEMENT)
+            {
+               return "V";
+            }
+            if(param1 == Unit.U_MINER_ELEMENT)
+            {
+               return "Chomper";
+            }
          }
-         if(param1 == Unit.U_EARTH_ELEMENT)
-         {
-            return "Earth Elemental";
-         }
-         if(param1 == Unit.U_WATER_ELEMENT)
-         {
-            return "Water Elemental";
-         }
-         if(param1 == Unit.U_AIR_ELEMENT)
-         {
-            return "Air Elemental";
-         }
-         if(param1 == Unit.U_LAVA_ELEMENT)
-         {
-            return "Charrog";
-         }
-         if(param1 == Unit.U_HURRICANE_ELEMENT)
-         {
-            return "Cycloid";
-         }
-         if(param1 == Unit.U_FIRESTORM_ELEMENT)
-         {
-            return "Infernos";
-         }
-         if(param1 == Unit.U_TREE_ELEMENT)
-         {
-            return "Treasure";
-         }
-         if(param1 == Unit.U_SCORPION_ELEMENT)
-         {
-            return "Scorpion";
-         }
-         if(param1 == Unit.U_CHROME_ELEMENT)
-         {
-            return "V";
-         }
-         if(param1 == Unit.U_MINER_ELEMENT)
-         {
-            return "Chomper";
-         }
-         return "{Target Is Not a Unit}";
+         return "{Invalid Value}";
       }
 
       public static function unitTypeToXML(param1:int, param2:StickWar) : XMLList
@@ -1236,49 +1306,52 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          {
             return param2.xml.xml.Chaos.Units.giant;
          }
-         if(param1 == Unit.U_FIRE_ELEMENT)
+         if(!Loader.instance.isSW2)
          {
-            return param2.xml.xml.Elemental.Units.fireElement;
-         }
-         if(param1 == Unit.U_EARTH_ELEMENT)
-         {
-            return param2.xml.xml.Elemental.Units.earthElement;
-         }
-         if(param1 == Unit.U_WATER_ELEMENT)
-         {
-            return param2.xml.xml.Elemental.Units.waterElement;
-         }
-         if(param1 == Unit.U_AIR_ELEMENT)
-         {
-            return param2.xml.xml.Elemental.Units.airElement;
-         }
-         if(param1 == Unit.U_LAVA_ELEMENT)
-         {
-            return param2.xml.xml.Elemental.Units.lavaElement;
-         }
-         if(param1 == Unit.U_HURRICANE_ELEMENT)
-         {
-            return param2.xml.xml.Elemental.Units.hurricaneElement;
-         }
-         if(param1 == Unit.U_FIRESTORM_ELEMENT)
-         {
-            return param2.xml.xml.Elemental.Units.firestormElement;
-         }
-         if(param1 == Unit.U_TREE_ELEMENT)
-         {
-            return param2.xml.xml.Elemental.Units.treeElement;
-         }
-         if(param1 == Unit.U_SCORPION_ELEMENT)
-         {
-            return param2.xml.xml.Elemental.Units.scorpionElement;
-         }
-         if(param1 == Unit.U_CHROME_ELEMENT)
-         {
-            return param2.xml.xml.Elemental.Units.chrome;
-         }
-         if(param1 == Unit.U_MINER_ELEMENT)
-         {
-            return param2.xml.xml.Elemental.Units.miner;
+            if(param1 == Unit.U_FIRE_ELEMENT)
+            {
+               return param2.xml.xml.Elemental.Units.fireElement;
+            }
+            if(param1 == Unit.U_EARTH_ELEMENT)
+            {
+               return param2.xml.xml.Elemental.Units.earthElement;
+            }
+            if(param1 == Unit.U_WATER_ELEMENT)
+            {
+               return param2.xml.xml.Elemental.Units.waterElement;
+            }
+            if(param1 == Unit.U_AIR_ELEMENT)
+            {
+               return param2.xml.xml.Elemental.Units.airElement;
+            }
+            if(param1 == Unit.U_LAVA_ELEMENT)
+            {
+               return param2.xml.xml.Elemental.Units.lavaElement;
+            }
+            if(param1 == Unit.U_HURRICANE_ELEMENT)
+            {
+               return param2.xml.xml.Elemental.Units.hurricaneElement;
+            }
+            if(param1 == Unit.U_FIRESTORM_ELEMENT)
+            {
+               return param2.xml.xml.Elemental.Units.firestormElement;
+            }
+            if(param1 == Unit.U_TREE_ELEMENT)
+            {
+               return param2.xml.xml.Elemental.Units.treeElement;
+            }
+            if(param1 == Unit.U_SCORPION_ELEMENT)
+            {
+               return param2.xml.xml.Elemental.Units.scorpionElement;
+            }
+            if(param1 == Unit.U_CHROME_ELEMENT)
+            {
+               return param2.xml.xml.Elemental.Units.chrome;
+            }
+            if(param1 == Unit.U_MINER_ELEMENT)
+            {
+               return param2.xml.xml.Elemental.Units.miner;
+            }
          }
          return null;
       }
@@ -1308,6 +1381,93 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          debug.error("Type " + data + " is not supported.", "StringMap");
          return null;
       }
+
+      // Fuzzy Search implemantaion
+      private static function fuzzySearch(query:String, items:Array):Array 
+      {
+         if (!query || query.length == 0) {
+            return items.slice(); // Return copy of original array
+         }
+         
+         if (items.length == 0) {
+            return []; // Can't return anything from empty array
+         }
+         
+         var results:Array = [];
+         var queryLower:String = query.toLowerCase();
+         var queryLen:int = queryLower.length;
+         
+         for each (var item:String in items) 
+         {
+            var score:int = getLevenshteinScore(queryLower, item.toLowerCase(), queryLen);
+            results.push({text: item, score: score});
+         }
+         
+         // Sort by score (higher is better)
+         results.sortOn("score", Array.NUMERIC | Array.DESCENDING);
+         
+         // Ensure we always return at least one result (the best match)
+         if (results.length == 0) {
+            return [items[0]]; // Return first item as fallback
+         }
+         
+         var finalResults:Array = [];
+         for each (var result:Object in results) 
+         {
+            finalResults.push(result.text);
+         }
+         
+         return finalResults;
+      }
+
+      private static function getLevenshteinScore(query:String, target:String, queryLen:int):int 
+      {
+         var targetLen:int = target.length;
+         
+         // Exact match gets highest score
+         if (query == target) {
+            return 1000;
+         }
+         
+         // Check for exact substring match
+         var substringIndex:int = target.indexOf(query);
+         if (substringIndex >= 0) {
+            // Prefer matches at the beginning
+            return 500 - substringIndex;
+         }
+         
+         // Use simplified Levenshtein distance for fuzzy matching
+         var matrix:Array = [];
+         var i:int
+         var j:int;
+         
+         // Initialize matrix
+         for (i = 0; i <= queryLen; i++) {
+            matrix[i] = [];
+            matrix[i][0] = i;
+         }
+         for (j = 0; j <= targetLen; j++) {
+            matrix[0][j] = j;
+         }
+         
+         // Fill matrix
+         for (i = 1; i <= queryLen; i++) {
+            for (j = 1; j <= targetLen; j++) {
+                  var cost:int = (query.charAt(i - 1) == target.charAt(j - 1)) ? 0 : 1;
+                  matrix[i][j] = Math.min(
+                     matrix[i - 1][j] + 1,      // deletion
+                     matrix[i][j - 1] + 1,      // insertion
+                     matrix[i - 1][j - 1] + cost // substitution
+                  );
+            }
+         }
+         
+         var distance:int = matrix[queryLen][targetLen];
+         
+         // Convert distance to score (lower distance = higher score)
+         // Always return a score, even for poor matches
+         return Math.max(1, 100 - (distance * 5)); // Minimum score of 1
+      }
    }
 }
 package com.brockw.stickwar.campaign.controllers.EasyController
@@ -1317,9 +1477,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class Loader
     {
-        public static const version:String = "1.3.0";
+        public static const version:String = "1.3.1";
 
-        public static const date:String = "28-06-2024";
+        public static const date:String = "11-08-2025";
 
         public static const developer:String = "dyzqy";
 
@@ -1330,7 +1490,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public var isBeta:Boolean = true;
 
-        public var isDev:Boolean = false;
+        public var isDev:Boolean = true;
 
         public var isSW2:Boolean = false; 
 

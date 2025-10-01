@@ -8,6 +8,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class CutScene
     {
+        
         private var _gameScreen:GameScreen;
 
         private var unitsAvailable:Array = [];

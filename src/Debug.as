@@ -10,18 +10,13 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class Debug
     {
-      // FIx no scrolling to end later, add new private class for commands
       private var _gameScreen:GameScreen;
 
       private var initilized:Boolean = false;
 
-      private var globaldebug:Boolean = false;
-
       public static var instance:Debug;
 
       public var inputField:TextField;
-
-      public var statsField:TextField;
 
       public var consoletext:TextField;
 
@@ -38,29 +33,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          this.consoletext = new TextField();
       }
 
-      public function stats(fSize:Number = 12) : void
-      {
-         var textFormat:TextFormat = new TextFormat("Verdana",fSize,16777215);
-         statsField.defaultTextFormat = textFormat;
-         statsField.multiline = true;
-         statsField.wordWrap = true;
-         statsField.height = 225;
-         statsField.width = 250;
-
-         statsField.antiAliasType = AntiAliasType.ADVANCED;
-         statsField.embedFonts = true;
-
-         _gameScreen.userInterface.hud.addChild(statsField);
-         statsField.x = 10;
-         statsField.y = 10;
-         var dropShadowFilter:DropShadowFilter = new DropShadowFilter(4,45,0,1,0,0,1,3);
-         var glowFilter:GlowFilter = new GlowFilter(4079166,1,0,0,10,1,false,false);
-         glowFilter.blurX = 5;
-         glowFilter.blurY = 5;
-         statsField.filters = [glowFilter];
-      }
-
-      public function console(fSize:int = 14, coms:Boolean = true, _globaldebug:Boolean = false) : void
+      public function setup(fSize:int = 12, coms:Boolean = true) : void
       {
          var textFormat:TextFormat = new TextFormat("Verdana", int(fSize), 16777215);
          consoletext.defaultTextFormat = textFormat;
@@ -87,16 +60,12 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          background.x = consoletext.x;
          background.y = consoletext.y;
          this.initilized = true;
-         globaldebug = _globaldebug;
+         // globaldebug = _globaldebug;
       }
       
       public function log(msg:String,  color:String = "#FFFFFF") : void
       {
-         if(globaldebug)
-         {
-            gdlog("[" + CurrentTime() + "] " + msg);
-         }
-         else if(initilized)
+         if(initilized)
          {
             var formattedMessage:String = "<font color='" + color + "'>" + "[" + CurrentTime() + "] " + msg + "</font>";
             consoletext.htmlText += formattedMessage + "\n";
@@ -119,12 +88,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
       public function logError(msg:String, cl:String = "") : void
       {
-         if(globaldebug)
-         {
-            //gdlog("color 04");
-            gdlog("[" + CurrentTime() + ", " + cl + "] " + msg);
-         }
-         else if(initilized)
+         if(initilized)
          {
             var formattedMessage:String = "<font color='#FF0000'>" + "[" + CurrentTime() + ", " + cl + "] " + msg + "</font>";
             consoletext.htmlText += formattedMessage + "\n";
@@ -138,11 +102,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
       public function error(msg:String, cl:String = "") : void
       {
-         if(globaldebug)
-         {
-            gdlog("[" + CurrentTime() + ", " + cl + "] " + msg);
-         }
-         else if(initilized)
+         if(initilized)
          {
             var formattedMessage:String = "<font color='#FF0000'>" + "[" + CurrentTime() + ", " + cl + "] " + msg + "</font>";
             consoletext.htmlText += formattedMessage + "\n";
@@ -159,11 +119,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          }
       }
 
-      public function Statistics(txt:String, txt2:String = "", txt3:String = "", txt4:String = "", txt5:String = "", txt6:String = "") : void
-      {
-         statsField.htmlText = txt + "\n" + txt2 + "\n" + txt3 + "\n" + txt4 + "\n" + txt5 + "\n" + txt6;
-      }
-
       public function CurrentTime() : String
       {
          var seconds:Number = this._gameScreen.game.frame / 30;
@@ -172,29 +127,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
          var formattedTime:String = minutes.toString() + ":" + (remainingSeconds < 10 ? "0" : "") + remainingSeconds.toString();
          return formattedTime;
-      }
-
-      private function gdlog(text:String) : void
-      {
-         Security.allowDomain("*");
-         Security.allowInsecureDomain("*");
-
-         var request:URLRequest = new URLRequest("http://localhost:6969/");
-         request.method = URLRequestMethod.POST;
-
-         var variables:URLVariables = new URLVariables();
-         variables.deez = text;
-         request.data = variables;
-
-         var loader:URLLoader = new URLLoader();
-         loader.load(request);
-
-         loader.addEventListener(Event.COMPLETE, function(event:Event):void{
-            // Response handling logic here
-         });
-         loader.addEventListener(IOErrorEvent.IO_ERROR, function(event:IOErrorEvent):void {
-            // Error handling logic here
-         });
       }
 
       public function addComms(coms:Boolean = true, fSize:int = 14) : void

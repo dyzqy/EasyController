@@ -6,7 +6,10 @@ package com.brockw.stickwar.campaign.controllers
    
     public class CampaignArcher extends CampaignController
     {
-
+        // What should this class be about?
+        // I'm thinking of making this into a fully fledged level
+        // A scripted OvO level, with these units:
+        // Miners, Swordwrath, Archidons, Speartons & Shadowrath(?)
         private var msg:InGameMessage;
 
         private var hasStarted:Boolean = false;
@@ -18,11 +21,7 @@ package com.brockw.stickwar.campaign.controllers
 
         public function start(param1:GameScreen) : void
         {
-            msg = cs.startMsg("The enemy archidons have teamed up with the shadowrath to create new traps, beware where you put your feet!");
-            for(var i:int = 0; i < 5; i++)
-            {
-                pp.landmine(param1.team.statue.px + 750 + data.random(0, 0), param1.game.map.height / 5 * i, param1.team.enemyTeam, 0.15);
-            }
+            util.
         }
         
         override public function update(param1:GameScreen) : void
@@ -32,8 +31,7 @@ package com.brockw.stickwar.campaign.controllers
                 start(param1);
                 hasStarted = true;
             }
-            cs.message(msg, 8);
-            pp.updateProjectiles();
+            
         }
     }
 }

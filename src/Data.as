@@ -13,6 +13,9 @@ package com.brockw.stickwar.campaign.controllers.EasyController
    // TODO: Orginise all of the functions inside to their respective categories.
    public class Data
    {
+      public var center:Object;
+
+      public var randomNumbers:Vector.<int> = new Vector.<int>();
 
       private var _gameScreen:GameScreen;
 
@@ -21,21 +24,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
       {
          super();
          this._gameScreen = gameScreen;
-      }
 
-      // TODO: This is ok, but not ok. Not really DIY
-      public function center(pos:String = "x") : Number
-      {
-         pos = pos.toLowerCase();
-         if(pos == "x" || pos == "px")
-         {
-            return this._gameScreen.game.map.width / 2;
-         }
-         else if(pos == "y" || pos == "py")
-         {
-            return this._gameScreen.game.map.height / 2;
-         }
-         return 0;
+         center = {x: this._gameScreen.game.map.width / 2, y: this._gameScreen.game.map.height / 2}
       }
 
       // Returns amount of all units or of a specfic type(s) of unit(s).
@@ -67,18 +57,35 @@ package com.brockw.stickwar.campaign.controllers.EasyController
       // TODO: Add description of what it does and of its paramaters
       /* 10/08/2025 dyzqy: Added a much more accurate way to check time, even if fast forward is on. 
        * Re-edited file to check if game is fast-forwarded before doing the extra calcs
+       * 02/10/2025 dyzqy: Made it use compiler paramater & variable name as these functions are called every frame.
        */
-      public function isTime(num:Number, doafter:Boolean = false) : Boolean
+      public function isTime(param1:Number) : Boolean
       {
-         var targetFrame:int = int(num * 30);
-         var currentFrame:int = this._gameScreen.game.frame;
+         var _loc2_:int = int(param1 * 30); // Target Frame
+         var _loc3_:int = this._gameScreen.game.frame; // Current Frame
 
          if(this._gameScreen.isFastForward)
          {
-            currentFrame = currentFrame - currentFrame % 2 + targetFrame % 2;
+            _loc3_ = _loc3_ - _loc3_ % 2 + _loc2_ % 2;
          }
 
-         return currentFrame == targetFrame;
+         return _loc3_ == _loc2_;
+      }
+
+      /**
+       * 02/10/2025 dyzqy: Tells you 
+       */
+      public function hasLooped(param1:Number) : Boolean
+      {
+         var _loc2_:int = int(param1 * 30); // Target Frame
+         var _loc3_:int = this._gameScreen.game.frame; // Current Frame
+
+         if(this._gameScreen.isFastForward)
+         {
+            _loc3_ = _loc3_ - _loc3_ % 2 + _loc2_ % 2;
+         }
+
+         return _loc3_ % _loc2_ == 0;
       }
 
       public function campaignInfo(infType:String) : *
@@ -112,10 +119,14 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return null;
       }
 
-      /* 11/08/2025 dyzqy: Random now uses the game's built in random number generator instead of the unreliable AS Math one.*/
+      /* 11/08/2025 dyzqy: Random now uses the game's built in random number generator instead of the unreliable AS Math one.
+         02/10/2025 dyzqy: Added randomNumber vector to keep track of all of the randomly generated numbers.
+      */
       public function random(min:Number, max:Number) : int
       {
-         return int(min + this._gameScreen.game.random.nextInt() % (max + 1));
+         var num:int = int(min + this._gameScreen.game.random.nextInt() % (max + 1));
+         randomNumbers.push(num);
+         return num;
       }
    }
 }

@@ -7,7 +7,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
     {
         public static const version:String = "1.3.1";
 
-        public static const date:String = "01-09-2025";
+        public static const date:String = "02-10-2025";
 
         public static const developer:String = "dyzqy";
 

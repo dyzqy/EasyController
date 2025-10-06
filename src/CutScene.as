@@ -8,16 +8,32 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class CutScene
     {
-        
         private var _gameScreen:GameScreen;
-
+        
         private var unitsAvailable:Array = [];
+
+        // 06/10/2025 dyzqy: Added global state.
+        public var state:int = 0;
+        // 06/10/2025 dyzqy: Added new messages object for the new update function.
+        public var messages:Object = {};
 
         public function CutScene(gs:GameScreen)
         {
             _gameScreen = gs;
-            super();
         }
+
+        // public function update() : void
+        // {
+        //     for (var key:String in messages)
+        //     {
+        //         messages[key].update();
+        //     }
+        // }
+
+        // public function registerMessage(message:InGameMessage, name:String = "message") : void
+        // {
+        //     messages[name] = message;
+        // }
         
         /* 13/08/2025 dyzqy: Added error message when you input an invalid parameter type. */
         public function follow(un:*) : void

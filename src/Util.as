@@ -172,13 +172,16 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         // TODO: Verify if this can run in multiplayer side 
         public function hold(unit:Unit, x:Number = 0, y:Number = 0) : void
         {
-            var move:UnitMove = new UnitMove();
-            move.owner = unit.team.id; 
-            move.moveType = UnitCommand.HOLD; 
-            move.arg0 = x; 
-            move.arg1 = y; 
-            move.units.push(unit.id); 
-            move.execute(_gameScreen.game);
+            // var move:UnitMove = new UnitMove();
+            // move.owner = unit.team.id; 
+            // move.moveType = UnitCommand.HOLD; 
+            // move.arg0 = x; 
+            // move.arg1 = y; 
+            // move.units.push(unit.id); 
+            // move.execute(_gameScreen.game);
+
+            // 07/10/2025 dyzqy: Reworked how hold command words.
+            unit.ai.setCommand(_gameScreen.game,new HoldCommand(_gameScreen.game));
 
             // var move:UnitMove = new UnitMove();
             // move.fromString([unit.team.id, this._gameScreen.game.frame, ]);

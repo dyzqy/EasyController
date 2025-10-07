@@ -22,18 +22,47 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             _gameScreen = gs;
         }
 
-        // public function update() : void
-        // {
-        //     for (var key:String in messages)
-        //     {
-        //         messages[key].update();
-        //     }
-        // }
+        public function update() : void
+        {
+            for(var _loc1_:String in messages)
+            {
+                var _loc2_:InGameMessage = messages[key];
+                var _loc3_:Object = messages["@" + key];
+                if(gameScreen.contains(_loc2_) && _loc2_.visible)
+                {
+                    // Check if there is no time set, and set the first frame the message is visible on screen.
+                    if(_loc3_.time == -1) messages["@" + key].time = _gameScreen.game.frame;
+                    _loc2_.update();
 
-        // public function registerMessage(message:InGameMessage, name:String = "message") : void
-        // {
-        //     messages[name] = message;
-        // }
+                    // Check if it has lived longer than its lifespan.
+                    if(_loc3_.time + _loc3_.lifetime < _gameScreen.game.frame) 
+                    {
+                        if(!_loc3_.toKill) _loc2_.visible = false;
+                        else
+                        {
+                            _gameScreen.removeChild(_loc2_);
+                            delete messages[key];
+                            delete messages["@" + key]
+                        }
+                    }
+                }
+            }
+        }
+
+        // 07/10/2025 dyzqy: Added register function that adds your message inside the Object for usage.
+        public function registerMessage(name:String, message:InGameMessage, lifespan:Number = -1, toRemove:Boolean = true) : void
+        {
+            if(messages[name]) Debug.instance.error("registerMessage(): Message with name '" + name + "' already exists.", "CutScene");
+            if(message == null) Debug.instance.error("registerMessage(): No viable InGameMessage given.", "CutScene");
+
+            messages[name] = message;
+            messages["@" + name] = {
+                time: -1, 
+                lifetime: lifespan != null? int(lifespan * 30) : Number.MAX_VALUE,
+                remove: toRemove, 
+                mc: message
+            };
+        }
         
         /* 13/08/2025 dyzqy: Added error message when you input an invalid parameter type. */
         public function follow(un:*) : void

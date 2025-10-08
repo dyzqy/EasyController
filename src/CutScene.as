@@ -37,12 +37,12 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                     // Check if it has lived longer than its lifespan.
                     if(_loc3_.time + _loc3_.lifetime < _gameScreen.game.frame) 
                     {
-                        if(!_loc3_.toKill) _loc2_.visible = false;
+                        if(!_loc3_.remove) _loc2_.visible = false;
                         else
                         {
                             _gameScreen.removeChild(_loc2_);
                             delete messages[key];
-                            delete messages["@" + key]
+                            delete messages["@" + key];
                         }
                     }
                 }
@@ -58,7 +58,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             messages[name] = message;
             messages["@" + name] = {
                 time: -1, 
-                lifetime: lifespan != null? int(lifespan * 30) : Number.MAX_VALUE,
+                lifetime: lifespan != null ? int(lifespan * 30) : Number.MAX_VALUE,
                 remove: toRemove, 
                 mc: message
             };

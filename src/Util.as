@@ -37,15 +37,12 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         // Summons unit(s) of a specified team.
         // "unitData" A specified type of unit or an array of unit types.
         // "copies" How many each specified unit should be spawned.
-        // "teamSpawn" Which team the unit spawns in.
-        // "func" A function to run on all units spawned.
+        // "team" Which team the unit spawns in.
+        // "f" A function to run on all units spawned.
         // "returnType" The type that the function should return
-        public function summonUnit(unitData:*, copies:int = 1, teamSpawn:Team = null, func:Function = null, returnType:Class = null) : *
+        public function summonUnit(unitData:*, copies:int = 1, team:Team = null, f:Function = null, returnType:Class = null) : *
         {
-            if(teamSpawn == null)
-            {
-                teamSpawn = preferredTeam;
-            }
+            if(team == null) team = preferredTeam;
 
             var units:Array = [];
             var u1:* = StringMap.getUnit(unitData);
@@ -54,7 +51,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             {
                 for(var i:int = 0; i < u1.length; i++)
                 {
-                    summonUnit(u1[i], copies, teamSpawn, func, returnType);
+                    summonUnit(u1[i], copies, team, f, returnType);
                 }
             }
             else if(u1 is int)
@@ -62,12 +59,12 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                 for(var i:int = 0; i < copies; i++)
                 {
                     var un:Unit = _gameScreen.game.unitFactory.getUnit(u1);
-                    teamSpawn.spawn(un, _gameScreen.game);
-                    teamSpawn.population += un.population;
+                    team.spawn(un, _gameScreen.game);
+                    team.population += un.population;
 
-                    if(func != null)
+                    if(f != null)
                     {
-                        func(un);
+                        f(un);
                     }
 
                     units.push(un);
@@ -89,6 +86,27 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                     break;
             }
         }
+
+        // private function spawnUnitObj(obj:Object) : *
+        // {
+        //     if(!Loader.instance.isDev)
+        //     {
+        //         debug.error("'spawnUnitObj()' function is still under work!", "Util")
+        //         return;
+        //     }
+
+        //     var testObject:Object = {
+        //         team: {
+        //             swordwrath: {
+        //                 copies: 5,
+        //                 f: function() {}
+        //             }
+        //         },
+        //         enemyTeam:{}
+        //     }
+
+        //     return null;
+        // }
 
         // TODO: Test if this works.
         // Allows a unit(s) of other empires to be summoned.
@@ -310,7 +328,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         // TODO: Rework this. It does its job too goofily.
         // + I don't even remember what it does lol
-        private function unitsreducedcode(type:*, func:Function, extrateam:Team = null) : void
+        private function unitsreducedcode(type:*, f:Function, extrateam:Team = null) : void
         {
             var un:* = null;
             var realamount:Number = amount / 30;
@@ -318,7 +336,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             {
                 for each(un in type.units)
                 {
-                    func(un);
+                    f(un);
                 }
             }
             else if(type is Array)
@@ -327,7 +345,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                 {
                     for each(un in type.units)
                     {
-                        func(un);
+                        f(un);
                     }
                 }
                 else if(type[0] is String)
@@ -335,7 +353,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                     var unitGroup:Array = getUnitGroup(type, extrateam);
                     for each(un in unitGroup)
                     {
-                        func(un);
+                        f(un);
                     }
                 }
                 else
@@ -345,14 +363,14 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
             else if(type is Unit)
             {
-                func(type);
+                f(type);
             }
             else if(type is String)
             {
                 var unitGroup:Array = getUnitGroup(type, extrateam);
                 for each(un in unitGroup)
                 {
-                    func(un);
+                    f(un);
                 }
             }
             else

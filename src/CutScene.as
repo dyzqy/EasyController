@@ -102,7 +102,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         }
 
         // Enables functionality for all hud elements that influence the game. 
-        public function enableUI(ui:Boolean = true) : void
+        public function enableUI() : void
         {
             var hud:MovieClip = _gameScreen.userInterface.hud.hud;
             

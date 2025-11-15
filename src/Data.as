@@ -130,7 +130,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
       */
       public function random(min:Number, max:Number) : int
       {
-
          var num:int = int(min + this._gameScreen.game.random.nextInt() % (max + 1));
          randomNumbers.push(num);
          return num;

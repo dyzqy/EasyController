@@ -26,12 +26,12 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         {
             for(var _loc1_:String in messages)
             {
-                var _loc2_:InGameMessage = messages[key];
-                var _loc3_:Object = messages["@" + key];
+                var _loc2_:InGameMessage = messages[key].mc;
+                var _loc3_:Object = messages[key];
                 if(gameScreen.contains(_loc2_) && _loc2_.visible)
                 {
                     // Check if there is no time set, and set the first frame the message is visible on screen.
-                    if(_loc3_.time == -1) messages["@" + key].time = _gameScreen.game.frame;
+                    if(_loc3_.time == -1) messages[key].time = _gameScreen.game.frame;
                     _loc2_.update();
 
                     // Check if it has lived longer than its lifespan.
@@ -42,7 +42,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                         {
                             _gameScreen.removeChild(_loc2_);
                             delete messages[key];
-                            delete messages["@" + key];
                         }
                     }
                 }
@@ -54,9 +53,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         {
             if(messages[name]) Debug.instance.error("registerMessage(): Message with name '" + name + "' already exists.", "CutScene");
             if(message == null) Debug.instance.error("registerMessage(): No viable InGameMessage given.", "CutScene");
-
-            messages[name] = message;
-            messages["@" + name] = {
+            
+            messages[name] = {
                 time: -1, 
                 lifetime: lifespan != null ? int(lifespan * 30) : Number.MAX_VALUE,
                 remove: toRemove, 

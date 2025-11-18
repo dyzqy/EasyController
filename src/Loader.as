@@ -20,7 +20,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public var isDev:Boolean = true;
 
-        public var isSW2:Boolean = false; 
+        public var isSW2:Boolean = false;
 
         private var _gameScreen:GameScreen;
 

@@ -17,7 +17,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class Util
     {
-        public var preferredTeam:Team;
+        public var preferedTeam:Team;
 
         private var _gameScreen:GameScreen;
 
@@ -29,7 +29,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             this._gameScreen = gameScreen;
             this.debug = Debug.instance;
 
-            this.preferredTeam = gameScreen.team;
+            // this.preferedTeam = gameScreen.game.teamA;
         }
 
     //  # Unit Related Functions. 
@@ -42,7 +42,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         // "returnType" The type that the function should return
         public function summonUnit(unitData:*, copies:int = 1, team:Team = null, f:Function = null, returnType:Class = null) : *
         {
-            if(team == null) team = preferredTeam;
+            if(preferedTeam == null) preferedTeam = _gameScreen.team;
+            if(team == null) team = preferedTeam;
 
             var units:Array = [];
             var u1:* = StringMap.getUnit(unitData);
@@ -74,7 +75,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             {
                 debug.error("Invalid parameter for 'SummonUnit()'. The first parameter must be either a String or an Array of Strings.", "Util");
             }
-
+            
             switch(returnType)
             {
                 case Array:
@@ -114,7 +115,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         // "team" the team to register the unit to.
         public function registerUnit(units:*, team:Team) : void
         {
-            if(team == null) team = preferredTeam;
+            if(preferedTeam == null) preferedTeam = _gameScreen.team;            
+            if(team == null) team = preferedTeam;
 
             var level:* = this._gameScreen.main.campaign.getCurrentLevel();
             units = StringMap.getUnit(units);
@@ -287,7 +289,8 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         // TODO: Decide if to keep these 2 functions below? They do not abide by the DIY "rule" I set. 
         public function changeStatue(team:Team, statue:String) : void
         {
-            if(team == null) team = preferredTeam;
+            if(preferedTeam == null) preferedTeam = _gameScreen.team;            
+            if(team == null) team = preferedTeam;
             team.statueType = statue.toLowerCase();
         }
 

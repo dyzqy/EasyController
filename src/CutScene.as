@@ -26,12 +26,12 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         {
             for(var _loc1_:String in messages)
             {
-                var _loc2_:InGameMessage = messages[key].mc;
-                var _loc3_:Object = messages[key];
-                if(gameScreen.contains(_loc2_) && _loc2_.visible)
+                var _loc2_:InGameMessage = messages[_loc1_].mc;
+                var _loc3_:Object = messages[_loc1_];
+                if(_gameScreen.contains(_loc2_) && _loc2_.visible)
                 {
                     // Check if there is no time set, and set the first frame the message is visible on screen.
-                    if(_loc3_.time == -1) messages[key].time = _gameScreen.game.frame;
+                    if(_loc3_.time == -1) messages[_loc1_].time = _gameScreen.game.frame;
                     _loc2_.update();
 
                     // Check if it has lived longer than its lifespan.
@@ -41,7 +41,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                         else
                         {
                             _gameScreen.removeChild(_loc2_);
-                            delete messages[key];
+                            delete messages[_loc1_];
                         }
                     }
                 }

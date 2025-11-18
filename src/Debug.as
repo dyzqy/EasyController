@@ -29,7 +29,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          this._gameScreen = gameScreen;
          Debug.instance = this;
          
-         this.statsField = new TextField();
+         // this.statsField = new TextField();
          this.consoletext = new TextField();
       }
 

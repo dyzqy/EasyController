@@ -15,7 +15,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
    {
       public var center:Object;
 
-      public var randomNumbers:Vector.<int> = new Vector.<int>();
+      // public var randomNumbers:Vector.<int>;
 
       private var _gameScreen:GameScreen;
 
@@ -25,10 +25,12 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          this._gameScreen = gameScreen;
 
          // Added new center variable(to replace function)
-         center = {
-            x: this._gameScreen.game.map.width / 2, 
-            y: this._gameScreen.game.map.height / 2
-         }
+         // center = {
+         //    x: this._gameScreen.game.map.width / 2, 
+         //    y: this._gameScreen.game.map.height / 2
+         // }
+
+         // randomNumbers = new Vector.<int>();
       }
 
       // Returns amount of all units or of a specfic type(s) of unit(s).
@@ -58,7 +60,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
       }
 
       // TODO: Add description of what it does and of its paramaters
-      /**
+      /*
        * 10/08/2025 dyzqy: Added a much more accurate way to check time, even if fast forward is on. 
        * Re-edited file to check if game is fast-forwarded before doing the extra calcs
        * 02/10/2025 dyzqy: Made it use compiler paramater & variable name as these functions are called every frame.
@@ -76,22 +78,22 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return _loc3_ == _loc2_;
       }
 
-      /**
+      /*
        * 02/10/2025 dyzqy: Tells you if it has looped.
        * param1 is the second at which it should have looped.
        * param2 is when the loop has been first initiated, must have for accurate looping.
        */
       public function hasLooped(param1:Number, param2:Number = 0) : Boolean
       {
-         var _loc2_:int = int(param1 * 30); // Target Frame
-         var _loc3_:int = this._gameScreen.game.frame + int(param2 * 30); // Current Frame
+         var _loc3_:int = int(param1 * 30); // Target Frame
+         var _loc4_:int = this._gameScreen.game.frame + int(param2 * 30); // Current Frame
 
          if(this._gameScreen.isFastForward)
          {
-            _loc3_ = _loc3_ - _loc3_ % 2 + _loc2_ % 2;
+            _loc4_ = _loc4_ - _loc4_ % 2 + _loc3_ % 2;
          }
 
-         return _loc3_ % _loc2_ == 0;
+         return _loc4_ % _loc3_ == 0;
       }
 
       public function campaignInfo(infType:String) : *
@@ -131,7 +133,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
       public function random(min:Number, max:Number) : int
       {
          var num:int = int(min + this._gameScreen.game.random.nextInt() % (max + 1));
-         randomNumbers.push(num);
+         // randomNumbers.push(num);
          return num;
       }
    }

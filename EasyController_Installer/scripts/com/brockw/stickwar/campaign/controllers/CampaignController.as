@@ -50,29 +50,24 @@ package com.brockw.stickwar.campaign.controllers.EasyController
    // TODO: Orginise all of the functions inside to their respective categories.
    public class Data
    {
+      public var center:Object;
+
+      // public var randomNumbers:Vector.<int>;
 
       private var _gameScreen:GameScreen;
 
 
       public function Data(gameScreen:GameScreen)
       {
-         super();
          this._gameScreen = gameScreen;
-      }
 
-      // TODO: This is ok, but not ok. Not really DIY
-      public function center(pos:String = "x") : Number
-      {
-         pos = pos.toLowerCase();
-         if(pos == "x" || pos == "px")
-         {
-            return this._gameScreen.game.map.width / 2;
-         }
-         else if(pos == "y" || pos == "py")
-         {
-            return this._gameScreen.game.map.height / 2;
-         }
-         return 0;
+         // Added new center variable(to replace function)
+         // center = {
+         //    x: this._gameScreen.game.map.width / 2, 
+         //    y: this._gameScreen.game.map.height / 2
+         // }
+
+         // randomNumbers = new Vector.<int>();
       }
 
       // Returns amount of all units or of a specfic type(s) of unit(s).
@@ -102,20 +97,40 @@ package com.brockw.stickwar.campaign.controllers.EasyController
       }
 
       // TODO: Add description of what it does and of its paramaters
-      /* 10/08/2025 dyzqy: Added a much more accurate way to check time, even if fast forward is on. 
+      /*
+       * 10/08/2025 dyzqy: Added a much more accurate way to check time, even if fast forward is on. 
        * Re-edited file to check if game is fast-forwarded before doing the extra calcs
+       * 02/10/2025 dyzqy: Made it use compiler paramater & variable name as these functions are called every frame.
        */
-      public function isTime(num:Number, doafter:Boolean = false) : Boolean
+      public function isTime(param1:Number) : Boolean
       {
-         var targetFrame:int = int(num * 30);
-         var currentFrame:int = this._gameScreen.game.frame;
+         var _loc2_:int = int(param1 * 30); // Target Frame
+         var _loc3_:int = this._gameScreen.game.frame; // Current Frame
 
          if(this._gameScreen.isFastForward)
          {
-            currentFrame = currentFrame - currentFrame % 2 + targetFrame % 2;
+            _loc3_ = _loc3_ - _loc3_ % 2 + _loc2_ % 2;
          }
 
-         return currentFrame == targetFrame;
+         return _loc3_ == _loc2_;
+      }
+
+      /*
+       * 02/10/2025 dyzqy: Tells you if it has looped.
+       * param1 is the second at which it should have looped.
+       * param2 is when the loop has been first initiated, must have for accurate looping.
+       */
+      public function hasLooped(param1:Number, param2:Number = 0) : Boolean
+      {
+         var _loc3_:int = int(param1 * 30); // Target Frame
+         var _loc4_:int = this._gameScreen.game.frame + int(param2 * 30); // Current Frame
+
+         if(this._gameScreen.isFastForward)
+         {
+            _loc4_ = _loc4_ - _loc4_ % 2 + _loc3_ % 2;
+         }
+
+         return _loc4_ % _loc3_ == 0;
       }
 
       public function campaignInfo(infType:String) : *
@@ -149,10 +164,14 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          return null;
       }
 
-      /* 11/08/2025 dyzqy: Random now uses the game's built in random number generator instead of the unreliable AS Math one.*/
+      /* 11/08/2025 dyzqy: Random now uses the game's built in random number generator instead of the unreliable AS Math one.
+         02/10/2025 dyzqy: Added randomNumber vector to keep track of all of the randomly generated numbers.
+      */
       public function random(min:Number, max:Number) : int
       {
-         return int(min + this._gameScreen.game.random.nextInt() % (max + 1));
+         var num:int = int(min + this._gameScreen.game.random.nextInt() % (max + 1));
+         // randomNumbers.push(num);
+         return num;
       }
    }
 }
@@ -168,18 +187,13 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class Debug
     {
-      // FIx no scrolling to end later, add new private class for commands
       private var _gameScreen:GameScreen;
 
       private var initilized:Boolean = false;
 
-      private var globaldebug:Boolean = false;
-
       public static var instance:Debug;
 
       public var inputField:TextField;
-
-      public var statsField:TextField;
 
       public var consoletext:TextField;
 
@@ -192,33 +206,11 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          this._gameScreen = gameScreen;
          Debug.instance = this;
          
-         this.statsField = new TextField();
+         // this.statsField = new TextField();
          this.consoletext = new TextField();
       }
 
-      public function stats(fSize:Number = 12) : void
-      {
-         var textFormat:TextFormat = new TextFormat("Verdana",fSize,16777215);
-         statsField.defaultTextFormat = textFormat;
-         statsField.multiline = true;
-         statsField.wordWrap = true;
-         statsField.height = 225;
-         statsField.width = 250;
-
-         statsField.antiAliasType = AntiAliasType.ADVANCED;
-         statsField.embedFonts = true;
-
-         _gameScreen.userInterface.hud.addChild(statsField);
-         statsField.x = 10;
-         statsField.y = 10;
-         var dropShadowFilter:DropShadowFilter = new DropShadowFilter(4,45,0,1,0,0,1,3);
-         var glowFilter:GlowFilter = new GlowFilter(4079166,1,0,0,10,1,false,false);
-         glowFilter.blurX = 5;
-         glowFilter.blurY = 5;
-         statsField.filters = [glowFilter];
-      }
-
-      public function console(fSize:int = 14, coms:Boolean = true, _globaldebug:Boolean = false) : void
+      public function setup(fSize:int = 12, coms:Boolean = true) : void
       {
          var textFormat:TextFormat = new TextFormat("Verdana", int(fSize), 16777215);
          consoletext.defaultTextFormat = textFormat;
@@ -245,16 +237,12 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          background.x = consoletext.x;
          background.y = consoletext.y;
          this.initilized = true;
-         globaldebug = _globaldebug;
+         // globaldebug = _globaldebug;
       }
       
       public function log(msg:String,  color:String = "#FFFFFF") : void
       {
-         if(globaldebug)
-         {
-            gdlog("[" + CurrentTime() + "] " + msg);
-         }
-         else if(initilized)
+         if(initilized)
          {
             var formattedMessage:String = "<font color='" + color + "'>" + "[" + CurrentTime() + "] " + msg + "</font>";
             consoletext.htmlText += formattedMessage + "\n";
@@ -277,12 +265,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
       public function logError(msg:String, cl:String = "") : void
       {
-         if(globaldebug)
-         {
-            //gdlog("color 04");
-            gdlog("[" + CurrentTime() + ", " + cl + "] " + msg);
-         }
-         else if(initilized)
+         if(initilized)
          {
             var formattedMessage:String = "<font color='#FF0000'>" + "[" + CurrentTime() + ", " + cl + "] " + msg + "</font>";
             consoletext.htmlText += formattedMessage + "\n";
@@ -296,11 +279,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
       public function error(msg:String, cl:String = "") : void
       {
-         if(globaldebug)
-         {
-            gdlog("[" + CurrentTime() + ", " + cl + "] " + msg);
-         }
-         else if(initilized)
+         if(initilized)
          {
             var formattedMessage:String = "<font color='#FF0000'>" + "[" + CurrentTime() + ", " + cl + "] " + msg + "</font>";
             consoletext.htmlText += formattedMessage + "\n";
@@ -317,11 +296,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
          }
       }
 
-      public function Statistics(txt:String, txt2:String = "", txt3:String = "", txt4:String = "", txt5:String = "", txt6:String = "") : void
-      {
-         statsField.htmlText = txt + "\n" + txt2 + "\n" + txt3 + "\n" + txt4 + "\n" + txt5 + "\n" + txt6;
-      }
-
       public function CurrentTime() : String
       {
          var seconds:Number = this._gameScreen.game.frame / 30;
@@ -330,29 +304,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
          var formattedTime:String = minutes.toString() + ":" + (remainingSeconds < 10 ? "0" : "") + remainingSeconds.toString();
          return formattedTime;
-      }
-
-      private function gdlog(text:String) : void
-      {
-         Security.allowDomain("*");
-         Security.allowInsecureDomain("*");
-
-         var request:URLRequest = new URLRequest("http://localhost:6969/");
-         request.method = URLRequestMethod.POST;
-
-         var variables:URLVariables = new URLVariables();
-         variables.deez = text;
-         request.data = variables;
-
-         var loader:URLLoader = new URLLoader();
-         loader.load(request);
-
-         loader.addEventListener(Event.COMPLETE, function(event:Event):void{
-            // Response handling logic here
-         });
-         loader.addEventListener(IOErrorEvent.IO_ERROR, function(event:IOErrorEvent):void {
-            // Error handling logic here
-         });
       }
 
       public function addComms(coms:Boolean = true, fSize:int = 14) : void
@@ -456,15 +407,15 @@ package com.brockw.stickwar.campaign.controllers.EasyController
     import com.brockw.stickwar.engine.Team.*;
     import com.brockw.stickwar.engine.multiplayer.moves.*;
     import com.brockw.stickwar.engine.units.*;
-
-    import flash.net.FileReference;
     import flash.utils.*;
     import flash.text.*;
     import flash.display.*;
 
+    // import flash.net.FileReference;
+
     public class Util
     {
-        public var preferredTeam:Team;
+        public var preferedTeam:Team;
 
         private var _gameScreen:GameScreen;
 
@@ -476,7 +427,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             this._gameScreen = gameScreen;
             this.debug = Debug.instance;
 
-            this.preferredTeam = gameScreen.team;
+            // this.preferedTeam = gameScreen.game.teamA;
         }
 
     //  # Unit Related Functions. 
@@ -484,15 +435,13 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         // Summons unit(s) of a specified team.
         // "unitData" A specified type of unit or an array of unit types.
         // "copies" How many each specified unit should be spawned.
-        // "teamSpawn" Which team the unit spawns in.
-        // "func" A function to run on all units spawned.
+        // "team" Which team the unit spawns in.
+        // "f" A function to run on all units spawned.
         // "returnType" The type that the function should return
-        public function summonUnit(unitData:*, copies:int = 1, teamSpawn:Team = null, func:Function = null, returnType:Class = null) : *
+        public function summonUnit(unitData:*, copies:int = 1, team:Team = null, f:Function = null, returnType:Class = null) : *
         {
-            if(teamSpawn == null)
-            {
-                teamSpawn = _gameScreen.team;
-            }
+            if(preferedTeam == null) preferedTeam = _gameScreen.team;
+            if(team == null) team = preferedTeam;
 
             var units:Array = [];
             var u1:* = StringMap.getUnit(unitData);
@@ -501,7 +450,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             {
                 for(var i:int = 0; i < u1.length; i++)
                 {
-                    summonUnit(u1[i], copies, teamSpawn, func, returnType);
+                    summonUnit(u1[i], copies, team, f, returnType);
                 }
             }
             else if(u1 is int)
@@ -509,12 +458,12 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                 for(var i:int = 0; i < copies; i++)
                 {
                     var un:Unit = _gameScreen.game.unitFactory.getUnit(u1);
-                    teamSpawn.spawn(un, _gameScreen.game);
-                    teamSpawn.population += un.population;
+                    team.spawn(un, _gameScreen.game);
+                    team.population += un.population;
 
-                    if(func != null)
+                    if(f != null)
                     {
-                        func(un);
+                        f(un);
                     }
 
                     units.push(un);
@@ -524,7 +473,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             {
                 debug.error("Invalid parameter for 'SummonUnit()'. The first parameter must be either a String or an Array of Strings.", "Util");
             }
-
+            
             switch(returnType)
             {
                 case Array:
@@ -537,12 +486,36 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
         }
 
+        // private function spawnUnitObj(obj:Object) : *
+        // {
+        //     if(!Loader.instance.isDev)
+        //     {
+        //         debug.error("'spawnUnitObj()' function is still under work!", "Util")
+        //         return;
+        //     }
+
+        //     var testObject:Object = {
+        //         team: {
+        //             swordwrath: {
+        //                 copies: 5,
+        //                 f: function() {}
+        //             }
+        //         },
+        //         enemyTeam:{}
+        //     }
+
+        //     return null;
+        // }
+
         // TODO: Test if this works.
         // Allows a unit(s) of other empires to be summoned.
         // "units" A specified type of unit or an array of unit types.
         // "team" the team to register the unit to.
         public function registerUnit(units:*, team:Team) : void
         {
+            if(preferedTeam == null) preferedTeam = _gameScreen.team;            
+            if(team == null) team = preferedTeam;
+
             var level:* = this._gameScreen.main.campaign.getCurrentLevel();
             units = StringMap.getUnit(units);
 
@@ -617,13 +590,16 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         // TODO: Verify if this can run in multiplayer side 
         public function hold(unit:Unit, x:Number = 0, y:Number = 0) : void
         {
-            var move:UnitMove = new UnitMove();
-            move.owner = unit.team.id; 
-            move.moveType = UnitCommand.HOLD; 
-            move.arg0 = x; 
-            move.arg1 = y; 
-            move.units.push(unit.id); 
-            move.execute(_gameScreen.game);
+            // var move:UnitMove = new UnitMove();
+            // move.owner = unit.team.id; 
+            // move.moveType = UnitCommand.HOLD; 
+            // move.arg0 = x; 
+            // move.arg1 = y; 
+            // move.units.push(unit.id); 
+            // move.execute(_gameScreen.game);
+
+            // 07/10/2025 dyzqy: Reworked how hold command words.
+            unit.ai.setCommand(_gameScreen.game,new HoldCommand(_gameScreen.game));
 
             // var move:UnitMove = new UnitMove();
             // move.fromString([unit.team.id, this._gameScreen.game.frame, ]);
@@ -684,28 +660,6 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }, extrateam);
         }
 
-        // TODO: Use another way to do this?
-        // public function passiveCure(type:*, timer:Number) : void
-        // {
-        //     var un:* = null;
-        //     if(type is Team)
-        //     {
-        //         for each(un in type.units)
-        //         {
-        //             loop(timer, function():void{
-        //                 un.cure();
-        //             });
-        //         }
-        //     }
-        //     else if(type is Unit)
-        //     {
-        //         var un:Unit = type;
-        //         loop(timer, function():void{
-        //             un.cure();
-        //         });
-        //     }
-        // }
-
     //  # Utility Related Functions. 
 
         // TODO: Either fix or remove.
@@ -730,29 +684,11 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         //     team.unitsAvailable[unit2] = 1;
         // }
 
-        // TODO: Rework reinforcements code.
-        // public function reinforcements(health:int, maxHealth:int, team:Team, info:* = null, fullHeal:Boolean = true, extra:Boolean = false) : void
-        // {
-        //     if(team.statue.health <= health && team.statue.maxHealth != maxHealth && !extra)
-        //     {
-        //         if(info is Function)
-        //         {
-        //             info();
-        //         }
-        //         else
-        //         {
-        //             debug.error("Input for 4th paramater must be a Function. 'reinforcements()'", "Util");
-        //         }
-                
-        //         team.statue.health = fullHeal ? maxHealth : (team.statue.maxHealth / team.statue.health - 1) * maxHealth;
-        //         team.statue.maxHealth = maxHealth;
-        //         team.statue.healthBar.totalHealth = maxHealth;
-        //     }
-        // }
-
         // TODO: Decide if to keep these 2 functions below? They do not abide by the DIY "rule" I set. 
         public function changeStatue(team:Team, statue:String) : void
         {
+            if(preferedTeam == null) preferedTeam = _gameScreen.team;            
+            if(team == null) team = preferedTeam;
             team.statueType = statue.toLowerCase();
         }
 
@@ -780,16 +716,20 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     //   # Private functions place :)
 
-        // TODO: make it so if you are on Dev, do not allow to save file.
-        public function saveFile(value:String, name:String = "data.txt") : void
-        {
-            var file:FileReference = new FileReference();
-            file.save(value, name);
-        }
+        // TODO: make it so if you are not on Dev, do not allow to save file.
+        // public function saveFile(value:String, name:String = "data.txt") : void
+        // {
+        //     if(!Loader.instance.isDev)
+        //     {
+
+        //     }
+        //     var file:FileReference = new FileReference();
+        //     file.save(value, name);
+        // }
 
         // TODO: Rework this. It does its job too goofily.
         // + I don't even remember what it does lol
-        private function unitsreducedcode(type:*, func:Function, extrateam:Team = null) : void
+        private function unitsreducedcode(type:*, f:Function, extrateam:Team = null) : void
         {
             var un:* = null;
             var realamount:Number = amount / 30;
@@ -797,7 +737,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             {
                 for each(un in type.units)
                 {
-                    func(un);
+                    f(un);
                 }
             }
             else if(type is Array)
@@ -806,7 +746,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                 {
                     for each(un in type.units)
                     {
-                        func(un);
+                        f(un);
                     }
                 }
                 else if(type[0] is String)
@@ -814,7 +754,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
                     var unitGroup:Array = getUnitGroup(type, extrateam);
                     for each(un in unitGroup)
                     {
-                        func(un);
+                        f(un);
                     }
                 }
                 else
@@ -824,14 +764,14 @@ package com.brockw.stickwar.campaign.controllers.EasyController
             }
             else if(type is Unit)
             {
-                func(type);
+                f(type);
             }
             else if(type is String)
             {
                 var unitGroup:Array = getUnitGroup(type, extrateam);
                 for each(un in unitGroup)
                 {
-                    func(un);
+                    f(un);
                 }
             }
             else
@@ -857,16 +797,58 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
     public class CutScene
     {
-        
-
         private var _gameScreen:GameScreen;
-
+        
         private var unitsAvailable:Array = [];
+
+        // 06/10/2025 dyzqy: Added global state.
+        public var state:int = 0;
+        // 06/10/2025 dyzqy: Added new messages object for the new update function.
+        public var messages:Object = {};
 
         public function CutScene(gs:GameScreen)
         {
             _gameScreen = gs;
-            super();
+        }
+
+        public function update() : void
+        {
+            for(var _loc1_:String in messages)
+            {
+                var _loc2_:InGameMessage = messages[_loc1_].mc;
+                var _loc3_:Object = messages[_loc1_];
+                if(_gameScreen.contains(_loc2_) && _loc2_.visible)
+                {
+                    // Check if there is no time set, and set the first frame the message is visible on screen.
+                    if(_loc3_.time == -1) messages[_loc1_].time = _gameScreen.game.frame;
+                    _loc2_.update();
+
+                    // Check if it has lived longer than its lifespan.
+                    if(_loc3_.time + _loc3_.lifetime < _gameScreen.game.frame) 
+                    {
+                        if(!_loc3_.remove) _loc2_.visible = false;
+                        else
+                        {
+                            _gameScreen.removeChild(_loc2_);
+                            delete messages[_loc1_];
+                        }
+                    }
+                }
+            }
+        }
+
+        // 07/10/2025 dyzqy: Added register function that adds your message inside the Object for usage.
+        public function registerMessage(name:String, message:InGameMessage, lifespan:Number = -1, toRemove:Boolean = true) : void
+        {
+            if(messages[name]) Debug.instance.error("registerMessage(): Message with name '" + name + "' already exists.", "CutScene");
+            if(message == null) Debug.instance.error("registerMessage(): No viable InGameMessage given.", "CutScene");
+            
+            messages[name] = {
+                time: -1, 
+                lifetime: lifespan != null ? int(lifespan * 30) : Number.MAX_VALUE,
+                remove: toRemove, 
+                mc: message
+            };
         }
         
         /* 13/08/2025 dyzqy: Added error message when you input an invalid parameter type. */
@@ -907,7 +889,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
         }
 
         // Enables functionality for all hud elements that influence the game. 
-        public function enableUI(ui:Boolean = true) : void
+        public function enableUI() : void
         {
             var hud:MovieClip = _gameScreen.userInterface.hud.hud;
             
@@ -1479,7 +1461,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
     {
         public static const version:String = "1.3.1";
 
-        public static const date:String = "11-08-2025";
+        public static const date:String = "15-11-2025";
 
         public static const developer:String = "dyzqy";
 
@@ -1492,7 +1474,7 @@ package com.brockw.stickwar.campaign.controllers.EasyController
 
         public var isDev:Boolean = true;
 
-        public var isSW2:Boolean = false; 
+        public var isSW2:Boolean = false;
 
         private var _gameScreen:GameScreen;
 
